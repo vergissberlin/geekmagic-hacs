@@ -49,6 +49,13 @@ class GeekMagicEntity(CoordinatorEntity["GeekMagicCoordinator"]):
         host = entry.data[CONF_HOST]
         self._attr_unique_id = f"{host}_{description.key}"
 
+    @property
+    def available(self) -> bool:
+        """Return True - config entities are always available."""
+        # Config entities should always be available for user interaction
+        # even if the coordinator hasn't successfully updated yet
+        return True
+
     def _get_config_entry(self) -> ConfigEntry:
         """Get the config entry, asserting it exists.
 

@@ -229,22 +229,6 @@ class GeekMagicWidgetOptionSwitch(GeekMagicEntity, SwitchEntity):
             self.entity_description.default_value,
         )
 
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        # Only available if the widget exists and has this option
-        widget = self._get_widget_config()
-        if widget is None:
-            return False
-
-        widget_type = widget.get("type")
-        if widget_type not in WIDGET_BOOLEAN_OPTIONS:
-            return False
-
-        # Check if this option applies to this widget type
-        option_keys = [opt[0] for opt in WIDGET_BOOLEAN_OPTIONS.get(widget_type, [])]
-        return self.entity_description.option_key in option_keys
-
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         await self._async_set_option(True)
