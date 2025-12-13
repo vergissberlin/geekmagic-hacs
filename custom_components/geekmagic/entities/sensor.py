@@ -10,7 +10,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
@@ -58,7 +58,11 @@ async def async_setup_entry(
 
 
 class GeekMagicSensorEntity(GeekMagicEntity, SensorEntity):
-    """A GeekMagic sensor entity."""
+    """A GeekMagic sensor entity.
+
+    Unlike config entities, sensors DO update on coordinator refresh
+    since they display dynamic values (status, current screen).
+    """
 
     entity_description: GeekMagicSensorEntityDescription
 
@@ -69,6 +73,11 @@ class GeekMagicSensorEntity(GeekMagicEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor entity."""
         super().__init__(coordinator, description)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle coordinator update - sensors need state updates."""
+        self.async_write_ha_state()
 
     @property
     def native_value(self) -> str | None:

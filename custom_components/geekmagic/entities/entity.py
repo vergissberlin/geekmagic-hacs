@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.const import CONF_HOST, CONF_NAME
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -26,7 +27,12 @@ class GeekMagicEntityDescription(EntityDescription):
 
 
 class GeekMagicEntity(CoordinatorEntity["GeekMagicCoordinator"]):
-    """Base class for GeekMagic entities."""
+    """Base class for GeekMagic entities.
+
+    Config entities do NOT auto-update on coordinator refresh to prevent
+    frontend re-renders during periodic updates. State updates only happen
+    when the user changes config values.
+    """
 
     _attr_has_entity_name = True
 
@@ -48,6 +54,17 @@ class GeekMagicEntity(CoordinatorEntity["GeekMagicCoordinator"]):
         # Use host as unique ID base to match image entity
         host = entry.data[CONF_HOST]
         self._attr_unique_id = f"{host}_{description.key}"
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle coordinator update.
+
+        Override to prevent automatic state updates on every coordinator refresh.
+        Config entities only need to update when their values actually change,
+        which happens through their own set methods (async_set_value, etc.),
+        not through coordinator updates.
+        """
+        # Do NOT call async_write_ha_state() - prevents frontend re-renders
 
     @property
     def available(self) -> bool:
