@@ -4,6 +4,22 @@
 
 A Home Assistant custom integration for GeekMagic displays (SmallTV Pro and similar ESP8266-based devices).
 
+## Screenshots
+
+<p align="center">
+  <img src="samples/01_clock.png" width="160" alt="Clock Widget">
+  <img src="samples/02_grid_2x2.png" width="160" alt="2x2 Grid Layout">
+  <img src="samples/04_hero_layout.png" width="160" alt="Hero Layout">
+  <img src="samples/09_dashboard.png" width="160" alt="Dashboard">
+</p>
+
+<p align="center">
+  <img src="samples/03_grid_2x3.png" width="160" alt="2x3 Grid Layout">
+  <img src="samples/05_split_layout.png" width="160" alt="Split Layout">
+  <img src="samples/06_media_player.png" width="160" alt="Media Player">
+  <img src="samples/07_chart.png" width="160" alt="Chart Widget">
+</p>
+
 ## Features
 
 - **Dashboard widgets**: Clock, entity values, media player, charts, and text
@@ -76,8 +92,15 @@ uv sync
 # Run tests
 uv run pytest
 
-# Lint code
+# Lint and type check
 uv run ruff check .
+uv run ty check
+
+# Run all checks (pre-commit)
+uv run pre-commit run --all-files
+
+# Generate sample images
+uv run python scripts/generate_samples.py
 ```
 
 ## License
