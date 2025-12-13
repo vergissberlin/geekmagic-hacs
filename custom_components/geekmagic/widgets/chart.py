@@ -53,7 +53,14 @@ class ChartWidget(Widget):
         """
         x1, y1, x2, y2 = rect
         width = x2 - x1
-        padding = 10
+        height = y2 - y1
+
+        # Get scaled fonts
+        font_label = renderer.get_scaled_font("small", height)
+        font_value = renderer.get_scaled_font("regular", height)
+
+        # Calculate relative padding
+        padding = int(width * 0.08)
 
         # Get current value from entity
         state = self.get_entity_state(hass)
@@ -67,9 +74,11 @@ class ChartWidget(Widget):
             unit = state.attributes.get("unit_of_measurement", "")
             name = self.config.label or state.attributes.get("friendly_name", "Chart")
 
-        # Calculate chart area
-        chart_top = y1 + (35 if self.config.label else 20)
-        chart_bottom = y2 - (25 if self.show_range else 10)
+        # Calculate chart area relative to container
+        header_height = int(height * 0.15) if self.config.label else int(height * 0.08)
+        footer_height = int(height * 0.12) if self.show_range else int(height * 0.04)
+        chart_top = y1 + header_height
+        chart_bottom = y2 - footer_height
         chart_rect = (x1 + padding, chart_top, x2 - padding, chart_bottom)
 
         # Draw label
@@ -78,8 +87,8 @@ class ChartWidget(Widget):
             renderer.draw_text(
                 draw,
                 name.upper(),
-                (center_x, y1 + 12),
-                font=renderer.font_small,
+                (center_x, y1 + int(height * 0.08)),
+                font=font_label,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
@@ -90,8 +99,8 @@ class ChartWidget(Widget):
             renderer.draw_text(
                 draw,
                 value_str,
-                (x2 - padding, y1 + 12),
-                font=renderer.font_regular,
+                (x2 - padding, y1 + int(height * 0.08)),
+                font=font_value,
                 color=self.config.color or COLOR_CYAN,
                 anchor="rm",
             )
@@ -105,13 +114,13 @@ class ChartWidget(Widget):
             if self.show_range:
                 min_val = min(self._history_data)
                 max_val = max(self._history_data)
-                range_y = chart_bottom + 12
+                range_y = chart_bottom + int(height * 0.08)
 
                 renderer.draw_text(
                     draw,
                     f"{min_val:.1f}",
                     (x1 + padding, range_y),
-                    font=renderer.font_small,
+                    font=font_label,
                     color=COLOR_GRAY,
                     anchor="lm",
                 )
@@ -119,7 +128,7 @@ class ChartWidget(Widget):
                     draw,
                     f"{max_val:.1f}",
                     (x2 - padding, range_y),
-                    font=renderer.font_small,
+                    font=font_label,
                     color=COLOR_GRAY,
                     anchor="rm",
                 )
@@ -131,7 +140,7 @@ class ChartWidget(Widget):
                 draw,
                 "No data",
                 (center_x, center_y),
-                font=renderer.font_small,
+                font=font_label,
                 color=COLOR_GRAY,
                 anchor="mm",
             )

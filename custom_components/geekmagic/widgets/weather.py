@@ -65,7 +65,12 @@ class WeatherWidget(Widget):
         width = x2 - x1
         height = y2 - y1
         center_x = x1 + width // 2
-        padding = 10
+
+        # Get scaled fonts
+        font_regular = renderer.get_scaled_font("regular", height)
+
+        # Calculate relative padding
+        padding = int(width * 0.04)
 
         # Get entity state
         state = self.get_entity_state(hass)
@@ -76,7 +81,7 @@ class WeatherWidget(Widget):
                 draw,
                 "No Weather Data",
                 (center_x, y1 + height // 2),
-                font=renderer.font_regular,
+                font=font_regular,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
@@ -91,8 +96,8 @@ class WeatherWidget(Widget):
         # Get weather icon
         icon_name = WEATHER_ICONS.get(condition, "sun")
 
-        # Layout depends on available space
-        if height > 150 and self.show_forecast:
+        # Layout depends on available space (use relative threshold)
+        if height > 120 and self.show_forecast:
             self._render_full(
                 renderer, draw, rect, icon_name, temperature, humidity, condition, forecast, padding
             )
@@ -116,13 +121,19 @@ class WeatherWidget(Widget):
         """Render full weather with forecast."""
         x1, y1, x2, y2 = rect
         width = x2 - x1
+        height = y2 - y1
         center_x = x1 + width // 2
+
+        # Get scaled fonts
+        font_temp = renderer.get_scaled_font("xlarge", height)
+        font_condition = renderer.get_scaled_font("small", height)
+        font_tiny = renderer.get_scaled_font("tiny", height)
 
         # Current weather section
         current_y = y1 + padding
 
-        # Weather icon (large)
-        icon_size = 48
+        # Weather icon (scaled to container)
+        icon_size = max(24, int(height * 0.25))
         renderer.draw_icon(
             draw,
             icon_name,
@@ -136,8 +147,8 @@ class WeatherWidget(Widget):
         renderer.draw_text(
             draw,
             temp_str,
-            (center_x, current_y + icon_size + 15),
-            font=renderer.font_xlarge,
+            (center_x, current_y + icon_size + int(height * 0.08)),
+            font=font_temp,
             color=COLOR_WHITE,
             anchor="mm",
         )
@@ -146,32 +157,35 @@ class WeatherWidget(Widget):
         renderer.draw_text(
             draw,
             condition.replace("-", " ").title(),
-            (center_x, current_y + icon_size + 40),
-            font=renderer.font_small,
+            (center_x, current_y + icon_size + int(height * 0.22)),
+            font=font_condition,
             color=COLOR_GRAY,
             anchor="mm",
         )
 
         # Humidity
         if self.show_humidity:
+            humidity_icon_size = max(8, int(height * 0.07))
+            humidity_y = current_y + icon_size + int(height * 0.30)
             renderer.draw_icon(
-                draw, "drop", (x1 + padding, current_y + icon_size + 55), size=12, color=COLOR_CYAN
+                draw, "drop", (x1 + padding, humidity_y), size=humidity_icon_size, color=COLOR_CYAN
             )
             renderer.draw_text(
                 draw,
                 f"{humidity}%",
-                (x1 + padding + 16, current_y + icon_size + 61),
-                font=renderer.font_tiny,
+                (x1 + padding + humidity_icon_size + 4, humidity_y + humidity_icon_size // 2),
+                font=font_tiny,
                 color=COLOR_CYAN,
                 anchor="lm",
             )
 
         # Forecast section
         if forecast and self.show_forecast:
-            forecast_y = y2 - 45
+            forecast_y = y2 - int(height * 0.28)
             forecast_items = forecast[: self.forecast_days]
             if forecast_items:
                 item_width = (width - padding * 2) // len(forecast_items)
+                forecast_icon_size = max(10, int(height * 0.10))
 
                 for i, day in enumerate(forecast_items):
                     fx = x1 + padding + i * item_width + item_width // 2
@@ -184,7 +198,7 @@ class WeatherWidget(Widget):
                         draw,
                         day_name.upper(),
                         (fx, forecast_y),
-                        font=renderer.font_tiny,
+                        font=font_tiny,
                         color=COLOR_GRAY,
                         anchor="mm",
                     )
@@ -192,15 +206,19 @@ class WeatherWidget(Widget):
                     # Small icon
                     day_icon = WEATHER_ICONS.get(day_condition, "sun")
                     renderer.draw_icon(
-                        draw, day_icon, (fx - 8, forecast_y + 8), size=16, color=COLOR_GRAY
+                        draw,
+                        day_icon,
+                        (fx - forecast_icon_size // 2, forecast_y + int(height * 0.05)),
+                        size=forecast_icon_size,
+                        color=COLOR_GRAY,
                     )
 
                     # Temperature
                     renderer.draw_text(
                         draw,
                         f"{day_temp}°",
-                        (fx, forecast_y + 32),
-                        font=renderer.font_tiny,
+                        (fx, forecast_y + int(height * 0.20)),
+                        font=font_tiny,
                         color=COLOR_WHITE,
                         anchor="mm",
                     )
@@ -221,8 +239,12 @@ class WeatherWidget(Widget):
         height = y2 - y1
         center_y = y1 + height // 2
 
-        # Icon on left, temp on right
-        icon_size = min(32, height - 20)
+        # Get scaled fonts
+        font_temp = renderer.get_scaled_font("large", height)
+        font_tiny = renderer.get_scaled_font("tiny", height)
+
+        # Icon on left, temp on right - scaled to container
+        icon_size = max(16, min(32, int(height * 0.40)))
         renderer.draw_icon(
             draw,
             icon_name,
@@ -236,8 +258,8 @@ class WeatherWidget(Widget):
         renderer.draw_text(
             draw,
             temp_str,
-            (x2 - padding, center_y - 5),
-            font=renderer.font_large,
+            (x2 - padding, center_y - int(height * 0.04)),
+            font=font_temp,
             color=COLOR_WHITE,
             anchor="rm",
         )
@@ -247,8 +269,8 @@ class WeatherWidget(Widget):
             renderer.draw_text(
                 draw,
                 f"{humidity}%",
-                (x2 - padding, center_y + 15),
-                font=renderer.font_tiny,
+                (x2 - padding, center_y + int(height * 0.15)),
+                font=font_tiny,
                 color=COLOR_CYAN,
                 anchor="rm",
             )

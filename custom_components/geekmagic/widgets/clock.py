@@ -50,6 +50,11 @@ class ClockWidget(Widget):
         center_x = x1 + width // 2
         center_y = y1 + height // 2
 
+        # Get scaled fonts based on container height
+        font_time = renderer.get_scaled_font("xlarge", height)
+        font_date = renderer.get_scaled_font("regular", height)
+        font_small = renderer.get_scaled_font("small", height)
+
         # Get timezone from Home Assistant if available, otherwise use UTC
         tz = None
         if hass is not None:
@@ -71,8 +76,9 @@ class ClockWidget(Widget):
             time_str = now.strftime("%H:%M")
             ampm = None
 
-        # Calculate positions
-        time_y = center_y - 10 if self.show_date else center_y
+        # Calculate positions relative to container
+        offset_y = int(height * 0.08) if self.show_date else 0
+        time_y = center_y - offset_y
 
         # Draw time
         color = self.config.color or COLOR_WHITE
@@ -80,19 +86,19 @@ class ClockWidget(Widget):
             draw,
             time_str,
             (center_x, time_y),
-            font=renderer.font_xlarge,
+            font=font_time,
             color=color,
             anchor="mm",
         )
 
         # Draw AM/PM if 12-hour format
         if ampm:
-            ampm_x = center_x + renderer.get_text_size(time_str, renderer.font_xlarge)[0] // 2 + 5
+            ampm_x = center_x + renderer.get_text_size(time_str, font_time)[0] // 2 + 5
             renderer.draw_text(
                 draw,
                 ampm,
-                (ampm_x, time_y - 10),
-                font=renderer.font_small,
+                (ampm_x, time_y - int(height * 0.08)),
+                font=font_small,
                 color=COLOR_GRAY,
                 anchor="lm",
             )
@@ -100,24 +106,24 @@ class ClockWidget(Widget):
         # Draw date
         if self.show_date:
             date_str = now.strftime("%a, %b %d")
-            date_y = center_y + 25
+            date_y = center_y + int(height * 0.20)
             renderer.draw_text(
                 draw,
                 date_str,
                 (center_x, date_y),
-                font=renderer.font_regular,
+                font=font_date,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
 
         # Draw label if provided
         if self.config.label:
-            label_y = y1 + 15
+            label_y = y1 + int(height * 0.12)
             renderer.draw_text(
                 draw,
                 self.config.label.upper(),
                 (center_x, label_y),
-                font=renderer.font_small,
+                font=font_small,
                 color=COLOR_GRAY,
                 anchor="mm",
             )

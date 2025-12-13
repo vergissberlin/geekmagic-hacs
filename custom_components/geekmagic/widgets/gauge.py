@@ -99,23 +99,28 @@ class GaugeWidget(Widget):
         x1, y1, x2, y2 = rect
         height = y2 - y1
 
-        # Calculate layout
-        icon_size = 14
-        label_y = y1 + height // 3
-        bar_height = 10
-        bar_y = y1 + (height * 2) // 3 - bar_height // 2
+        # Get scaled fonts
+        font_label = renderer.get_scaled_font("tiny", height)
+        font_value = renderer.get_scaled_font("medium", height, bold=True)
+
+        # Calculate layout relative to container
+        icon_size = max(10, int(height * 0.23))
+        label_y = y1 + int(height * 0.33)
+        bar_height = max(6, int(height * 0.17))
+        bar_y = y1 + int(height * 0.67) - bar_height // 2
+        rel_padding = int(height * 0.13)
 
         # Draw icon if present
-        text_start_x = x1 + padding
+        text_start_x = x1 + rel_padding
         if self.icon is not None:
             renderer.draw_icon(
                 draw,
                 self.icon,
-                (x1 + padding, label_y - icon_size // 2),
+                (x1 + rel_padding, label_y - icon_size // 2),
                 size=icon_size,
                 color=color,
             )
-            text_start_x = x1 + padding + icon_size + 4
+            text_start_x = x1 + rel_padding + icon_size + 4
 
         # Draw label
         if name:
@@ -123,7 +128,7 @@ class GaugeWidget(Widget):
                 draw,
                 name.upper(),
                 (text_start_x, label_y),
-                font=renderer.font_tiny,
+                font=font_label,
                 color=COLOR_GRAY,
                 anchor="lm",
             )
@@ -134,14 +139,14 @@ class GaugeWidget(Widget):
             renderer.draw_text(
                 draw,
                 value_text,
-                (x2 - padding, label_y),
-                font=renderer.font_medium_bold,
+                (x2 - rel_padding, label_y),
+                font=font_value,
                 color=COLOR_WHITE,
                 anchor="rm",
             )
 
         # Draw bar
-        bar_rect = (x1 + padding, bar_y, x2 - padding, bar_y + bar_height)
+        bar_rect = (x1 + rel_padding, bar_y, x2 - rel_padding, bar_y + bar_height)
         renderer.draw_bar(draw, bar_rect, percent, color, COLOR_DARK_GRAY)
 
     def _render_ring(
@@ -161,14 +166,19 @@ class GaugeWidget(Widget):
         center_x = x1 + width // 2
         center_y = y1 + height // 2
 
-        # Calculate ring size
-        radius = min(width, height) // 2 - 15
-        ring_width = max(5, radius // 5)
+        # Get scaled fonts
+        font_value = renderer.get_scaled_font("large", height)
+        font_label = renderer.get_scaled_font("tiny", height)
+
+        # Calculate ring size relative to container
+        margin = int(min(width, height) * 0.12)
+        radius = min(width, height) // 2 - margin
+        ring_width = max(4, radius // 5)
 
         # Draw ring
         renderer.draw_ring_gauge(
             draw,
-            center=(center_x, center_y - 5),
+            center=(center_x, center_y - int(height * 0.04)),
             radius=radius,
             percent=percent,
             color=color,
@@ -182,8 +192,8 @@ class GaugeWidget(Widget):
             renderer.draw_text(
                 draw,
                 value_text,
-                (center_x, center_y - 5),
-                font=renderer.font_large,
+                (center_x, center_y - int(height * 0.04)),
+                font=font_value,
                 color=COLOR_WHITE,
                 anchor="mm",
             )
@@ -193,8 +203,8 @@ class GaugeWidget(Widget):
             renderer.draw_text(
                 draw,
                 name.upper(),
-                (center_x, y2 - 10),
-                font=renderer.font_tiny,
+                (center_x, y2 - int(height * 0.10)),
+                font=font_label,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
@@ -214,10 +224,15 @@ class GaugeWidget(Widget):
         width = x2 - x1
         height = y2 - y1
         center_x = x1 + width // 2
-        center_y = y1 + height // 2 + 10
+        center_y = y1 + int(height * 0.55)
 
-        # Calculate arc size
-        radius = min(width, height) // 2 - 10
+        # Get scaled fonts
+        font_value = renderer.get_scaled_font("large", height)
+        font_label = renderer.get_scaled_font("small", height)
+
+        # Calculate arc size relative to container
+        margin = int(min(width, height) * 0.08)
+        radius = min(width, height) // 2 - margin
 
         # Draw arc using renderer's draw_arc method
         renderer.draw_arc(
@@ -234,8 +249,8 @@ class GaugeWidget(Widget):
             renderer.draw_text(
                 draw,
                 value_text,
-                (center_x, center_y - 5),
-                font=renderer.font_large,
+                (center_x, center_y - int(height * 0.04)),
+                font=font_value,
                 color=COLOR_WHITE,
                 anchor="mm",
             )
@@ -245,8 +260,8 @@ class GaugeWidget(Widget):
             renderer.draw_text(
                 draw,
                 name.upper(),
-                (center_x, y1 + 12),
-                font=renderer.font_small,
+                (center_x, y1 + int(height * 0.12)),
+                font=font_label,
                 color=COLOR_GRAY,
                 anchor="mm",
             )

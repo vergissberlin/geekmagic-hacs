@@ -97,6 +97,51 @@ class Renderer:
         """Scale a value for supersampling."""
         return int(value * self._scale)
 
+    def get_scaled_font(
+        self,
+        size_name: str,
+        rect_height: int,
+        bold: bool = False,
+    ) -> FreeTypeFont | ImageFont.ImageFont:
+        """Get a font scaled relative to container height.
+
+        This enables widgets to render correctly at any size by scaling
+        fonts proportionally to their container.
+
+        Args:
+            size_name: Font size category ("tiny", "small", "regular", "medium",
+                      "large", "xlarge", "huge")
+            rect_height: Height of the container rect (already scaled for supersample)
+            bold: Whether to use bold variant
+
+        Returns:
+            Font scaled appropriately for the container size
+        """
+        # Font config: (base_size, min_size) per category
+        # Base sizes are for full 240px height at 2x scale = 480px
+        # Min sizes ensure readability even in small containers
+        font_config = {
+            "tiny": (11, 18),
+            "small": (13, 20),
+            "regular": (15, 24),
+            "medium": (18, 28),
+            "large": (24, 34),
+            "xlarge": (36, 44),
+            "huge": (52, 52),
+        }
+
+        base_size, min_size = font_config.get(size_name, (15, 24))
+
+        # Calculate scale factor based on container height vs reference
+        # Reference is 240px at 2x scale = 480px
+        reference_height = self._scaled_height
+        scale_factor = rect_height / reference_height
+
+        # Scale font size with category-specific minimum for readability
+        scaled_size = max(min_size, int(base_size * self._scale * scale_factor))
+
+        return _load_font(scaled_size, bold=bold)
+
     def _scale_rect(self, rect: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
         """Scale a rectangle for supersampling."""
         return (self._s(rect[0]), self._s(rect[1]), self._s(rect[2]), self._s(rect[3]))

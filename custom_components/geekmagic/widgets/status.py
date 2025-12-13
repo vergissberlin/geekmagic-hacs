@@ -46,7 +46,15 @@ class StatusWidget(Widget):
         width = x2 - x1
         height = y2 - y1
         center_y = y1 + height // 2
-        padding = 8
+
+        # Get scaled fonts
+        font_name = renderer.get_scaled_font("small", height)
+        font_status = renderer.get_scaled_font("small", height)
+
+        # Calculate relative padding and sizes
+        padding = int(width * 0.06)
+        dot_radius = max(3, int(height * 0.12))
+        icon_size = max(10, int(height * 0.35))
 
         # Get entity state
         state = self.get_entity_state(hass)
@@ -72,7 +80,6 @@ class StatusWidget(Widget):
             name = name[: max_name_len - 2] + ".."
 
         # Draw status indicator (dot)
-        dot_radius = 5
         dot_x = x1 + padding + dot_radius
         dot_y = center_y
 
@@ -83,17 +90,23 @@ class StatusWidget(Widget):
         )
 
         # Draw icon if present
-        text_x = dot_x + dot_radius + 8
+        text_x = dot_x + dot_radius + int(width * 0.06)
         if self.icon:
-            renderer.draw_icon(draw, self.icon, (text_x, center_y - 7), size=14, color=COLOR_GRAY)
-            text_x += 18
+            renderer.draw_icon(
+                draw,
+                self.icon,
+                (text_x, center_y - icon_size // 2),
+                size=icon_size,
+                color=COLOR_GRAY,
+            )
+            text_x += icon_size + 4
 
         # Draw name
         renderer.draw_text(
             draw,
             name,
             (text_x, center_y),
-            font=renderer.font_small,
+            font=font_name,
             color=COLOR_WHITE,
             anchor="lm",
         )
@@ -104,7 +117,7 @@ class StatusWidget(Widget):
                 draw,
                 status_text,
                 (x2 - padding, center_y),
-                font=renderer.font_small,
+                font=font_status,
                 color=color,
                 anchor="rm",
             )
@@ -145,25 +158,35 @@ class StatusListWidget(Widget):
         """
         x1, y1, x2, y2 = rect
         width = x2 - x1
-        padding = 8
+        height = y2 - y1
+
+        # Get scaled fonts
+        font_title = renderer.get_scaled_font("small", height)
+        font_label = renderer.get_scaled_font("tiny", height)
+
+        # Calculate relative padding
+        padding = int(width * 0.05)
         current_y = y1 + padding
 
         # Draw title if present
+        title_height = 0
         if self.title:
             renderer.draw_text(
                 draw,
                 self.title.upper(),
                 (x1 + padding, current_y),
-                font=renderer.font_small,
+                font=font_title,
                 color=COLOR_GRAY,
                 anchor="lm",
             )
-            current_y += 18
+            title_height = int(height * 0.15)
+            current_y += title_height
 
-        # Calculate row height
+        # Calculate row height relative to container
         available_height = y2 - current_y - padding
         row_count = len(self.entities) or 1
-        row_height = min(20, available_height // row_count)
+        row_height = min(int(height * 0.17), available_height // row_count)
+        dot_radius = max(2, int(height * 0.025))
 
         # Draw each entity
         for entry in self.entities:
@@ -200,7 +223,12 @@ class StatusListWidget(Widget):
             dot_y = current_y + row_height // 2
             renderer.draw_ellipse(
                 draw,
-                rect=(x1 + padding, dot_y - 3, x1 + padding + 6, dot_y + 3),
+                rect=(
+                    x1 + padding,
+                    dot_y - dot_radius,
+                    x1 + padding + dot_radius * 2,
+                    dot_y + dot_radius,
+                ),
                 fill=color,
             )
 
@@ -208,8 +236,8 @@ class StatusListWidget(Widget):
             renderer.draw_text(
                 draw,
                 label,
-                (x1 + padding + 12, dot_y),
-                font=renderer.font_tiny,
+                (x1 + padding + dot_radius * 2 + 6, dot_y),
+                font=font_label,
                 color=COLOR_WHITE,
                 anchor="lm",
             )
@@ -222,7 +250,7 @@ class StatusListWidget(Widget):
                         draw,
                         status_text,
                         (x2 - padding, dot_y),
-                        font=renderer.font_tiny,
+                        font=font_label,
                         color=color,
                         anchor="rm",
                     )

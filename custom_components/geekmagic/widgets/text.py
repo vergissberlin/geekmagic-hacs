@@ -46,15 +46,17 @@ class TextWidget(Widget):
         # Get text to display
         text = self._get_text(hass)
 
-        # Select font
-        font = self._get_font(renderer)
+        # Get scaled font based on container height
+        font = renderer.get_scaled_font(self.size, height)
+        font_label = renderer.get_scaled_font("small", height)
 
-        # Calculate position
+        # Calculate position with relative padding
+        padding = int(width * 0.04)
         if self.align == "left":
-            x = x1 + 5
+            x = x1 + padding
             anchor = "lm"
         elif self.align == "right":
-            x = x2 - 5
+            x = x2 - padding
             anchor = "rm"
         else:  # center
             x = x1 + width // 2
@@ -68,12 +70,12 @@ class TextWidget(Widget):
 
         # Draw label if provided
         if self.config.label:
-            label_y = y1 + 12
+            label_y = y1 + int(height * 0.15)
             renderer.draw_text(
                 draw,
                 self.config.label.upper(),
                 (x1 + width // 2, label_y),
-                font=renderer.font_small,
+                font=font_label,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
@@ -90,13 +92,3 @@ class TextWidget(Widget):
                 return state.state
 
         return self.text
-
-    def _get_font(self, renderer: Renderer):
-        """Get the font based on size setting."""
-        fonts = {
-            "small": renderer.font_small,
-            "regular": renderer.font_regular,
-            "large": renderer.font_large,
-            "xlarge": renderer.font_xlarge,
-        }
-        return fonts.get(self.size, renderer.font_regular)

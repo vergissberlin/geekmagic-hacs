@@ -95,9 +95,14 @@ class EntityWidget(Widget):
         center_x = x1 + width // 2
         center_y = y1 + height // 2
 
-        # Calculate positions
-        value_y = center_y if not self.show_name else center_y - 8
-        name_y = y2 - 12
+        # Get scaled fonts based on container height
+        font_value = renderer.get_scaled_font("large", height)
+        font_name = renderer.get_scaled_font("tiny", height)
+
+        # Calculate positions relative to container
+        offset_y = int(height * 0.07) if self.show_name else 0
+        value_y = center_y - offset_y
+        name_y = y2 - int(height * 0.12)
 
         # Draw value
         value_text = f"{value}{unit}" if unit else value
@@ -105,7 +110,7 @@ class EntityWidget(Widget):
             draw,
             value_text,
             (center_x, value_y),
-            font=renderer.font_large,
+            font=font_value,
             color=color,
             anchor="mm",
         )
@@ -116,7 +121,7 @@ class EntityWidget(Widget):
                 draw,
                 name.upper(),
                 (center_x, name_y),
-                font=renderer.font_tiny,
+                font=font_name,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
@@ -136,10 +141,15 @@ class EntityWidget(Widget):
         width = x2 - x1
         height = y2 - y1
         center_x = x1 + width // 2
-        padding = 6
+
+        # Get scaled fonts based on container height
+        font_value = renderer.get_scaled_font("medium", height, bold=True)
+        font_name = renderer.get_scaled_font("tiny", height)
 
         # Layout: icon at top, value in middle, name at bottom
-        icon_size = min(24, height // 3)
+        # Scale icon size relative to container
+        icon_size = max(12, min(24, int(height * 0.25)))
+        padding = int(height * 0.08)
 
         # Draw icon (self.icon is guaranteed to be set when this method is called)
         assert self.icon is not None
@@ -153,14 +163,12 @@ class EntityWidget(Widget):
 
         # Draw value
         value_text = f"{value}{unit}" if unit else value
-        value_y = y1 + height // 2 + 5
+        value_y = y1 + int(height * 0.55)
         renderer.draw_text(
             draw,
             value_text,
             (center_x, value_y),
-            font=renderer.font_medium_bold
-            if hasattr(renderer, "font_medium_bold")
-            else renderer.font_regular,
+            font=font_value,
             color=COLOR_WHITE,
             anchor="mm",
         )
@@ -170,8 +178,8 @@ class EntityWidget(Widget):
             renderer.draw_text(
                 draw,
                 name.upper(),
-                (center_x, y2 - 10),
-                font=renderer.font_tiny,
+                (center_x, y2 - int(height * 0.12)),
+                font=font_name,
                 color=COLOR_GRAY,
                 anchor="mm",
             )
