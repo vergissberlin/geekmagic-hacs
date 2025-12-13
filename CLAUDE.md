@@ -86,8 +86,8 @@ custom_components/geekmagic/
 ### Widget Interface
 ```python
 class Widget(ABC):
-    def render(self, renderer, draw, rect, hass) -> None:
-        """Draw widget in the given rectangle."""
+    def render(self, ctx: RenderContext, hass) -> None:
+        """Draw widget using the render context (local coordinates)."""
 
     def get_entities(self) -> list[str]:
         """Return entity IDs this widget depends on."""
@@ -149,3 +149,32 @@ All tests use mocks and don't require a real device or Home Assistant instance.
 3. Register in `layouts/__init__.py`
 4. Add to `LAYOUT_CLASSES` in `coordinator.py`
 5. Add to config flow options
+
+## Asyncio and Blocking Operations
+
+Home Assistant runs on asyncio. Blocking operations prevent the event loop from executing other tasks and must be handled properly.
+
+### Blocking Operations to Avoid in Async Code
+- **Disk I/O**: `open()`, `glob.glob()`, `os.walk()`, `os.listdir()`, `pathlib` read/write
+- **Network I/O**: urllib operations (use `aiohttp` instead)
+- **Heavy computation**: CPU-intensive tasks like image rendering
+- **Sleep**: Use `asyncio.sleep()` instead of `time.sleep()`
+
+### How to Offload Blocking Work
+```python
+# In Home Assistant integration code:
+result = await hass.async_add_executor_job(blocking_function, arg1, arg2)
+
+# With keyword arguments:
+from functools import partial
+result = await hass.async_add_executor_job(
+    partial(blocking_function, kwarg1=value1), arg1
+)
+```
+
+### This Integration's Blocking Operations
+- **Image rendering** (Pillow): CPU-intensive, runs in executor
+- **JPEG/PNG encoding**: CPU-intensive, runs in executor
+- **HTTP upload to device**: Uses aiohttp (async-native)
+
+See: https://developers.home-assistant.io/docs/asyncio_blocking_operations/
