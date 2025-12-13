@@ -66,9 +66,10 @@ class EntityWidget(Widget):
             unit = get_unit(state) if self.show_unit else ""
             name = resolve_label(self.config, state, state.entity_id)
 
-        # Truncate value and name using consistent helpers
-        max_value_chars = estimate_max_chars(ctx.width, char_width=10, padding=10)
-        max_name_chars = estimate_max_chars(ctx.width, char_width=7, padding=5)
+        # Truncate value and name - use generous estimates to avoid over-truncation
+        # Values can be longer text (e.g., "Team Meeting"), labels use smaller font
+        max_value_chars = estimate_max_chars(ctx.width, char_width=6, padding=6)
+        max_name_chars = estimate_max_chars(ctx.width, char_width=5, padding=4)
         value = truncate_text(value, max_value_chars)
         name = truncate_text(name, max_name_chars)
 

@@ -883,6 +883,80 @@ def generate_welcome_screen(renderer: Renderer, output_dir: Path) -> None:
     save_image(renderer, img, "00_welcome_screen", output_dir)
 
 
+def generate_gauge_sizes_2x2(renderer: Renderer, output_dir: Path) -> None:
+    """Generate gauges in 2x2 layout (large cells) to show responsive behavior."""
+    hass = MockHass()
+    hass.states.set("sensor.cpu", "73", {"unit_of_measurement": "%", "friendly_name": "CPU"})
+    hass.states.set("sensor.mem", "68", {"unit_of_measurement": "%", "friendly_name": "Memory"})
+    hass.states.set("sensor.disk", "45", {"unit_of_measurement": "%", "friendly_name": "Disk"})
+    hass.states.set("sensor.net", "82", {"unit_of_measurement": "%", "friendly_name": "Network"})
+
+    layout = Grid2x2(padding=8, gap=8)
+    img, draw = renderer.create_canvas()
+
+    widgets = [
+        ("sensor.cpu", "CPU", "cpu", COLOR_LIME),
+        ("sensor.mem", "Memory", "memory", COLOR_PURPLE),
+        ("sensor.disk", "Disk", "disk", COLOR_ORANGE),
+        ("sensor.net", "Network", "network", COLOR_CYAN),
+    ]
+
+    for i, (entity, label, icon, color) in enumerate(widgets):
+        gauge = GaugeWidget(
+            WidgetConfig(
+                widget_type="gauge",
+                slot=i,
+                entity_id=entity,
+                label=label,
+                color=color,
+                options={"style": "bar", "icon": icon},
+            )
+        )
+        layout.set_widget(i, gauge)
+
+    layout.render(renderer, draw, hass)  # type: ignore[arg-type]
+    save_image(renderer, img, "13_gauges_large", output_dir)
+
+
+def generate_gauge_sizes_2x3(renderer: Renderer, output_dir: Path) -> None:
+    """Generate gauges in 2x3 layout (small cells) to show responsive behavior."""
+    hass = MockHass()
+    hass.states.set("sensor.cpu", "73", {"unit_of_measurement": "%", "friendly_name": "CPU"})
+    hass.states.set("sensor.mem", "68", {"unit_of_measurement": "%", "friendly_name": "Memory"})
+    hass.states.set("sensor.disk", "45", {"unit_of_measurement": "%", "friendly_name": "Disk"})
+    hass.states.set("sensor.net", "82", {"unit_of_measurement": "%", "friendly_name": "Network"})
+    hass.states.set("sensor.gpu", "55", {"unit_of_measurement": "%", "friendly_name": "GPU"})
+    hass.states.set("sensor.swap", "30", {"unit_of_measurement": "%", "friendly_name": "Swap"})
+
+    layout = Grid2x3(padding=8, gap=8)
+    img, draw = renderer.create_canvas()
+
+    widgets = [
+        ("sensor.cpu", "CPU", "cpu", COLOR_LIME),
+        ("sensor.mem", "Memory", "memory", COLOR_PURPLE),
+        ("sensor.disk", "Disk", "disk", COLOR_ORANGE),
+        ("sensor.net", "Network", "network", COLOR_CYAN),
+        ("sensor.gpu", "GPU", "temp", COLOR_RED),
+        ("sensor.swap", "Swap", "memory", COLOR_TEAL),
+    ]
+
+    for i, (entity, label, icon, color) in enumerate(widgets):
+        gauge = GaugeWidget(
+            WidgetConfig(
+                widget_type="gauge",
+                slot=i,
+                entity_id=entity,
+                label=label,
+                color=color,
+                options={"style": "bar", "icon": icon},
+            )
+        )
+        layout.set_widget(i, gauge)
+
+    layout.render(renderer, draw, hass)  # type: ignore[arg-type]
+    save_image(renderer, img, "14_gauges_small", output_dir)
+
+
 def main() -> None:
     """Generate all sample images."""
     output_dir = Path(__file__).parent.parent / "samples"
@@ -906,9 +980,11 @@ def main() -> None:
     generate_thermostat(renderer, output_dir)
     generate_batteries(renderer, output_dir)
     generate_security(renderer, output_dir)
+    generate_gauge_sizes_2x2(renderer, output_dir)
+    generate_gauge_sizes_2x3(renderer, output_dir)
 
     print()
-    print(f"Done! Generated 13 sample images in {output_dir}")
+    print(f"Done! Generated 15 sample images in {output_dir}")
 
 
 if __name__ == "__main__":

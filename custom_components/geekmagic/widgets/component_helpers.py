@@ -176,11 +176,11 @@ def IconValue(
     return Column(
         align="center",
         justify="center",
-        gap=2,
+        gap=4,
         children=[
             Icon(icon, color=color),
             Text(value, font="medium", bold=True, color=value_color),
-            Text(label.upper(), font="tiny", color=label_color),
+            Text(label.upper(), font="small", color=label_color),
         ],
     )
 
@@ -191,7 +191,7 @@ def CenteredValue(
     value_color: Color = COLOR_WHITE,
     label_color: Color = COLOR_GRAY,
     value_font: str = "large",
-    label_font: str = "tiny",
+    label_font: str = "small",
 ) -> Component:
     """Centered value with optional label below.
 
@@ -215,7 +215,7 @@ def CenteredValue(
     return Column(
         align="center",
         justify="center",
-        gap=4,
+        gap=6,
         children=children,
     )
 
