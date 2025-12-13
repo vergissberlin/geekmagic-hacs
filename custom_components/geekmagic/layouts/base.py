@@ -81,9 +81,11 @@ class Layout(ABC):
             hass: Home Assistant instance
         """
         for slot in self.slots:
-            if slot.widget is not None:
-                ctx = RenderContext(draw, slot.rect, renderer)
-                slot.widget.render(ctx, hass)
+            widget = slot.widget
+            if widget is None:
+                continue
+            ctx = RenderContext(draw, slot.rect, renderer)
+            widget.render(ctx, hass)
 
     def get_all_entities(self) -> list[str]:
         """Get all entity IDs from all widgets."""
