@@ -6,11 +6,15 @@ from typing import TYPE_CHECKING
 
 from ..const import (
     COLOR_CYAN,
+    COLOR_GRAY,
     COLOR_PANEL,
+    COLOR_WHITE,
     PLACEHOLDER_NAME,
     PLACEHOLDER_VALUE,
 )
 from .base import Widget, WidgetConfig
+from .component_helpers import CenteredValue, IconValue
+from .components import Component, Panel
 from .helpers import (
     estimate_max_chars,
     format_value_with_unit,
@@ -18,7 +22,6 @@ from .helpers import (
     resolve_label,
     truncate_text,
 )
-from .layout_helpers import layout_centered_value, layout_icon_centered_value
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -41,17 +44,16 @@ class EntityWidget(Widget):
         self,
         ctx: RenderContext,
         hass: HomeAssistant | None = None,
-    ) -> None:
+    ) -> Component:
         """Render the entity widget.
 
         Args:
             ctx: RenderContext for drawing
             hass: Home Assistant instance
-        """
-        # Draw panel background if enabled
-        if self.show_panel:
-            ctx.draw_panel((0, 0, ctx.width, ctx.height), COLOR_PANEL, radius=4)
 
+        Returns:
+            Component tree for rendering
+        """
         # Get entity state
         state = self.get_entity_state(hass)
 
@@ -71,47 +73,29 @@ class EntityWidget(Widget):
         name = truncate_text(name, max_name_chars)
 
         color = self.config.color or COLOR_CYAN
+        value_text = format_value_with_unit(value, unit)
+        label = name if self.show_name else None
 
-        # Layout depends on whether we have an icon
+        # Build component based on whether we have an icon
         if self.icon:
-            self._render_with_icon(ctx, value, unit, name, color)
+            content = IconValue(
+                icon=self.icon,
+                value=value_text,
+                label=label or "",
+                color=color,
+                value_color=COLOR_WHITE,
+                label_color=COLOR_GRAY,
+            )
         else:
-            self._render_centered(ctx, value, unit, name, color)
+            content = CenteredValue(
+                value=value_text,
+                label=label,
+                value_color=color,
+                label_color=COLOR_GRAY,
+            )
 
-    def _render_centered(
-        self,
-        ctx: RenderContext,
-        value: str,
-        unit: str,
-        name: str,
-        color: tuple[int, int, int],
-    ) -> None:
-        """Render with value centered and name below."""
-        value_text = format_value_with_unit(value, unit)
-        layout_centered_value(
-            ctx,
-            value=value_text,
-            label=name if self.show_name else None,
-            color=color,
-            show_label=self.show_name,
-        )
+        # Wrap in panel if enabled
+        if self.show_panel:
+            return Panel(child=content, color=COLOR_PANEL)
 
-    def _render_with_icon(
-        self,
-        ctx: RenderContext,
-        value: str,
-        unit: str,
-        name: str,
-        color: tuple[int, int, int],
-    ) -> None:
-        """Render with icon on top, value below, name at bottom."""
-        assert self.icon is not None
-        value_text = format_value_with_unit(value, unit)
-        layout_icon_centered_value(
-            ctx,
-            icon=self.icon,
-            value=value_text,
-            label=name if self.show_name else None,
-            color=color,
-            show_label=self.show_name,
-        )
+        return content

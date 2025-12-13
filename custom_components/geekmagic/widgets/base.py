@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ..render_context import RenderContext
+    from .components import Component
 
 
 @dataclass
@@ -25,7 +26,15 @@ class WidgetConfig:
 
 
 class Widget(ABC):
-    """Base class for all widgets."""
+    """Base class for all widgets.
+
+    Widgets can render in two ways:
+    1. Declarative (preferred): Return a Component tree from render()
+    2. Imperative (legacy): Draw directly using ctx.draw_*() methods
+
+    New widgets should use the declarative style for cleaner code
+    and automatic responsive layouts.
+    """
 
     def __init__(self, config: WidgetConfig) -> None:
         """Initialize the widget.
@@ -54,14 +63,21 @@ class Widget(ABC):
         self,
         ctx: RenderContext,
         hass: HomeAssistant | None = None,
-    ) -> None:
-        """Render the widget using the provided render context.
+    ) -> Component | None:
+        """Render the widget.
+
+        Can either:
+        - Return a Component tree (declarative style, preferred)
+        - Return None after drawing directly with ctx (imperative style, legacy)
 
         Args:
             ctx: RenderContext providing local coordinate system and drawing methods.
                  Use ctx.width and ctx.height for container dimensions.
                  All drawing coordinates are relative to widget origin (0, 0).
             hass: Home Assistant instance for entity states
+
+        Returns:
+            Component tree to render, or None if widget drew directly
         """
 
     def get_entity_state(self, hass: HomeAssistant | None, entity_id: str | None = None) -> Any:

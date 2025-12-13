@@ -119,6 +119,9 @@ ignore = [
     "SLF001",   # private member access in tests
     "PLR2004",  # magic values in tests
 ]
+"custom_components/geekmagic/widgets/component_helpers.py" = [
+    "N802",     # PascalCase for component factory functions (React-style)
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components.geekmagic"]

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..const import COLOR_CYAN, COLOR_DARK_GRAY, COLOR_GRAY, COLOR_WHITE
+from ..const import COLOR_CYAN, COLOR_DARK_GRAY
 from .base import Widget, WidgetConfig
+from .component_helpers import ArcGauge, BarGauge, RingGauge
+from .components import Component
 from .helpers import (
     calculate_percent,
     extract_numeric,
@@ -13,7 +15,6 @@ from .helpers import (
     get_unit,
     resolve_label,
 )
-from .layout_helpers import layout_bar_with_label
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -40,12 +41,15 @@ class GaugeWidget(Widget):
         self,
         ctx: RenderContext,
         hass: HomeAssistant | None = None,
-    ) -> None:
+    ) -> Component:
         """Render the gauge widget.
 
         Args:
             ctx: RenderContext for drawing
             hass: Home Assistant instance
+
+        Returns:
+            Component tree for rendering
         """
         # Get entity state
         state = self.get_entity_state(hass)
@@ -66,128 +70,30 @@ class GaugeWidget(Widget):
 
         color = self.config.color or COLOR_CYAN
 
+        # Format value with unit
+        value_text = format_value_with_unit(display_value, self.unit) if self.show_value else ""
+
         if self.style == "ring":
-            self._render_ring(ctx, percent, display_value, name, color)
-        elif self.style == "arc":
-            self._render_arc(ctx, percent, display_value, name, color)
-        else:
-            self._render_bar(ctx, percent, display_value, name, color)
-
-    def _render_bar(
-        self,
-        ctx: RenderContext,
-        percent: float,
-        value: str,
-        name: str,
-        color: tuple[int, int, int],
-    ) -> None:
-        """Render as horizontal progress bar."""
-        value_text = format_value_with_unit(value, self.unit) if self.show_value else ""
-        layout_bar_with_label(
-            ctx,
+            return RingGauge(
+                percent=percent,
+                value=value_text,
+                label=name,
+                color=color,
+                background=COLOR_DARK_GRAY,
+            )
+        if self.style == "arc":
+            return ArcGauge(
+                percent=percent,
+                value=value_text,
+                label=name,
+                color=color,
+                background=COLOR_DARK_GRAY,
+            )
+        return BarGauge(
             percent=percent,
-            label=name,
             value=value_text,
+            label=name,
             color=color,
-            background=COLOR_DARK_GRAY,
             icon=self.icon,
-        )
-
-    def _render_ring(
-        self,
-        ctx: RenderContext,
-        percent: float,
-        value: str,
-        name: str,
-        color: tuple[int, int, int],
-    ) -> None:
-        """Render as ring gauge."""
-        center_x = ctx.width // 2
-        center_y = ctx.height // 2
-
-        # Get scaled fonts
-        font_value = ctx.get_font("large")
-        font_label = ctx.get_font("tiny")
-
-        # Calculate ring size relative to container
-        margin = int(min(ctx.width, ctx.height) * 0.12)
-        radius = min(ctx.width, ctx.height) // 2 - margin
-        ring_width = max(4, radius // 5)
-
-        # Draw ring
-        ctx.draw_ring_gauge(
-            center=(center_x, center_y - int(ctx.height * 0.04)),
-            radius=radius,
-            percent=percent,
-            color=color,
-            background=COLOR_DARK_GRAY,
-            width=ring_width,
-        )
-
-        # Draw value in center
-        if self.show_value:
-            ctx.draw_text(
-                format_value_with_unit(value, self.unit),
-                (center_x, center_y - int(ctx.height * 0.04)),
-                font=font_value,
-                color=COLOR_WHITE,
-                anchor="mm",
-            )
-
-        # Draw label below
-        if name:
-            ctx.draw_text(
-                name.upper(),
-                (center_x, ctx.height - int(ctx.height * 0.10)),
-                font=font_label,
-                color=COLOR_GRAY,
-                anchor="mm",
-            )
-
-    def _render_arc(
-        self,
-        ctx: RenderContext,
-        percent: float,
-        value: str,
-        name: str,
-        color: tuple[int, int, int],
-    ) -> None:
-        """Render as arc gauge (semicircle)."""
-        center_x = ctx.width // 2
-        center_y = int(ctx.height * 0.55)
-
-        # Get scaled fonts
-        font_value = ctx.get_font("large")
-        font_label = ctx.get_font("small")
-
-        # Calculate arc size relative to container
-        margin = int(min(ctx.width, ctx.height) * 0.08)
-        radius = min(ctx.width, ctx.height) // 2 - margin
-
-        # Draw arc using renderer's draw_arc method
-        ctx.draw_arc(
-            rect=(center_x - radius, center_y - radius, center_x + radius, center_y + radius),
-            percent=percent,
-            color=color,
             background=COLOR_DARK_GRAY,
         )
-
-        # Draw value
-        if self.show_value:
-            ctx.draw_text(
-                format_value_with_unit(value, self.unit),
-                (center_x, center_y - int(ctx.height * 0.04)),
-                font=font_value,
-                color=COLOR_WHITE,
-                anchor="mm",
-            )
-
-        # Draw label
-        if name:
-            ctx.draw_text(
-                name.upper(),
-                (center_x, int(ctx.height * 0.12)),
-                font=font_label,
-                color=COLOR_GRAY,
-                anchor="mm",
-            )

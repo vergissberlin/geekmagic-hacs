@@ -11,6 +11,7 @@ from PIL import ImageDraw as PILImageDraw
 
 from ..const import COLOR_BLACK, DISPLAY_HEIGHT, DISPLAY_WIDTH
 from ..render_context import RenderContext
+from ..widgets.components import Component
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -124,6 +125,10 @@ class Layout(ABC):
         onto the main canvas. This ensures widgets cannot overflow their
         slot boundaries.
 
+        Supports two rendering styles:
+        - Declarative: Widget returns a Component tree which is rendered
+        - Imperative (legacy): Widget draws directly via ctx and returns None
+
         Args:
             renderer: Renderer instance
             draw: ImageDraw instance
@@ -151,7 +156,13 @@ class Layout(ABC):
             # The rect is relative to the temp image, not the main canvas
             local_rect = (0, 0, x2 - x1, y2 - y1)
             ctx = RenderContext(temp_draw, local_rect, renderer)
-            widget.render(ctx, hass)
+
+            # Call widget render - may return Component tree or None (legacy)
+            result = widget.render(ctx, hass)
+
+            # If widget returned a Component, render it
+            if isinstance(result, Component):
+                result.render(ctx, 0, 0, x2 - x1, y2 - y1)
 
             # Paste the widget image onto the main canvas at the slot position
             paste_x = x1 * scale

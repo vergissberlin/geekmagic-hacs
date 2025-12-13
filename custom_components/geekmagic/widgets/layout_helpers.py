@@ -9,7 +9,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..const import COLOR_GRAY, COLOR_WHITE
-from .flex_layout import layout_bar_gauge
+from .flex_layout import (
+    create_vertical_layout,
+    layout_bar_gauge,
+)
 
 if TYPE_CHECKING:
     from ..render_context import RenderContext
@@ -26,38 +29,62 @@ def layout_icon_label_value(
     padding_percent: float = 0.05,
     icon_size_percent: float = 0.35,
 ) -> None:
-    """Render horizontal layout: [Icon] [Label] ... [Value].
+    """Render responsive layout: [Icon] [Label] ... [Value].
 
-    Common pattern for widgets showing an icon, label on left, value on right.
+    Uses flexbox to automatically switch between horizontal and vertical
+    layouts based on available space. In narrow cells, stacks vertically.
 
     Args:
         ctx: RenderContext for drawing
         icon: Icon name (can be None to skip icon)
-        label: Label text (displayed left-aligned after icon)
-        value: Value text (displayed right-aligned)
+        label: Label text (displayed left-aligned after icon in horizontal mode)
+        value: Value text (displayed right-aligned in horizontal mode)
         color: Icon color
         label_color: Label text color (default: COLOR_GRAY)
         value_color: Value text color (default: COLOR_WHITE)
         padding_percent: Horizontal padding as percentage of width
         icon_size_percent: Icon size as percentage of height
     """
-    center_y = ctx.height // 2
     padding = int(ctx.width * padding_percent)
     icon_size = max(10, int(ctx.height * icon_size_percent))
 
-    font = ctx.get_font("small")
+    font_label = ctx.get_font("small")
+    font_value = ctx.get_font("small")
 
-    # Draw icon if present
-    text_x = padding
+    # Measure text to decide layout
+    value_width, _ = ctx.get_text_size(value, font_value)
+    label_width, _ = ctx.get_text_size(label, font_label)
+
+    # Calculate minimum space needed for horizontal layout
+    min_space = value_width + label_width + padding * 2 + 12
     if icon:
-        ctx.draw_icon(icon, (padding, center_y - icon_size // 2), icon_size, color)
-        text_x = padding + icon_size + 4
+        min_space += icon_size + 4
 
-    # Draw label
-    ctx.draw_text(label, (text_x, center_y), font, label_color, anchor="lm")
+    use_vertical = ctx.width < min_space
 
-    # Draw value
-    ctx.draw_text(value, (ctx.width - padding, center_y), font, value_color, anchor="rm")
+    if use_vertical:
+        # Vertical layout: value centered, label below
+        center_x = ctx.width // 2
+        value_y = int(ctx.height * 0.40)
+        label_y = int(ctx.height * 0.75)
+
+        ctx.draw_text(value, (center_x, value_y), font_value, value_color, anchor="mm")
+        ctx.draw_text(label.upper(), (center_x, label_y), font_label, label_color, anchor="mm")
+    else:
+        # Horizontal layout: [icon] label ... value
+        center_y = ctx.height // 2
+
+        # Draw icon if present
+        text_x = padding
+        if icon:
+            ctx.draw_icon(icon, (padding, center_y - icon_size // 2), icon_size, color)
+            text_x = padding + icon_size + 4
+
+        # Draw label
+        ctx.draw_text(label, (text_x, center_y), font_label, label_color, anchor="lm")
+
+        # Draw value
+        ctx.draw_text(value, (ctx.width - padding, center_y), font_value, value_color, anchor="rm")
 
 
 def layout_centered_value(
@@ -72,7 +99,7 @@ def layout_centered_value(
 ) -> None:
     """Render centered value with optional label below.
 
-    Common pattern for entity values displayed prominently in center.
+    Uses flexbox to properly stack and center value and label vertically.
 
     Args:
         ctx: RenderContext for drawing
@@ -85,22 +112,38 @@ def layout_centered_value(
         show_label: Whether to show the label
     """
     center_x = ctx.width // 2
-    center_y = ctx.height // 2
+    padding = int(ctx.height * 0.08)
 
     font_value = ctx.get_font(value_font)
     font_label = ctx.get_font(label_font)
 
-    # Offset value up if showing label
-    offset_y = int(ctx.height * 0.07) if show_label and label else 0
-    value_y = center_y - offset_y
-
-    # Draw value
-    ctx.draw_text(value, (center_x, value_y), font_value, color, anchor="mm")
-
-    # Draw label
+    # Measure elements
+    _, value_height = ctx.get_text_size(value, font_value)
+    label_height = 0
     if show_label and label:
-        label_y = ctx.height - int(ctx.height * 0.12)
+        _, label_height = ctx.get_text_size(label.upper(), font_label)
+
+    # Calculate vertical layout
+    content_height = ctx.height - padding * 2
+    if show_label and label:
+        # Stack value and label with gap
+        gap = int(ctx.height * 0.08)
+        total_height = value_height + gap + label_height
+        start_y = padding + (content_height - total_height) // 2
+
+        elements = {"value": value_height, "label": label_height}
+        boxes = create_vertical_layout(ctx.width, total_height, elements)
+
+        # Draw value
+        value_y = start_y + boxes["value"].y + boxes["value"].height // 2
+        ctx.draw_text(value, (center_x, value_y), font_value, color, anchor="mm")
+
+        # Draw label
+        label_y = start_y + boxes["value"].height + gap + label_height // 2
         ctx.draw_text(label.upper(), (center_x, label_y), font_label, label_color, anchor="mm")
+    else:
+        # Just center the value
+        ctx.draw_text(value, (center_x, ctx.height // 2), font_value, color, anchor="mm")
 
 
 def layout_icon_centered_value(

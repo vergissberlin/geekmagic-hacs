@@ -2,15 +2,24 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from ..const import COLOR_GRAY, COLOR_WHITE
 from .base import Widget, WidgetConfig
+from .components import Column, Component, Text
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ..render_context import RenderContext
+
+
+# Map widget align to component align
+ALIGN_MAP: dict[str, Literal["start", "center", "end"]] = {
+    "left": "start",
+    "center": "center",
+    "right": "end",
+}
 
 
 class TextWidget(Widget):
@@ -27,48 +36,35 @@ class TextWidget(Widget):
         self,
         ctx: RenderContext,
         hass: HomeAssistant | None = None,
-    ) -> None:
+    ) -> Component:
         """Render the text widget.
 
         Args:
             ctx: RenderContext for drawing
             hass: Home Assistant instance
+
+        Returns:
+            Component tree for rendering
         """
-        # Get text to display
         text = self._get_text(hass)
-
-        # Get scaled font based on container height
-        font = ctx.get_font(self.size)
-        font_label = ctx.get_font("small")
-
-        # Calculate position with relative padding
-        padding = int(ctx.width * 0.04)
-        if self.align == "left":
-            x = padding
-            anchor = "lm"
-        elif self.align == "right":
-            x = ctx.width - padding
-            anchor = "rm"
-        else:  # center
-            x = ctx.width // 2
-            anchor = "mm"
-
-        y = ctx.height // 2
-
-        # Draw text
         color = self.config.color or COLOR_WHITE
-        ctx.draw_text(text, (x, y), font=font, color=color, anchor=anchor)
+        align = ALIGN_MAP.get(self.align, "center")
 
-        # Draw label if provided
+        children: list[Component] = []
+
+        # Add label at top if provided
         if self.config.label:
-            label_y = int(ctx.height * 0.15)
-            ctx.draw_text(
-                self.config.label.upper(),
-                (ctx.width // 2, label_y),
-                font=font_label,
-                color=COLOR_GRAY,
-                anchor="mm",
-            )
+            children.append(Text(self.config.label.upper(), font="small", color=COLOR_GRAY))
+
+        # Main text
+        children.append(Text(text, font=self.size, color=color, align=align))
+
+        return Column(
+            children=children,
+            align="center",
+            justify="center",
+            gap=4,
+        )
 
     def _get_text(self, hass: HomeAssistant | None) -> str:
         """Get the text to display.
