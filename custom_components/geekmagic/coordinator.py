@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.const import __version__ as ha_version
@@ -750,6 +750,35 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         """
         return self._camera_images.get(entity_id)
 
+    def _fetch_entity_history(self, entity_id: str, start: datetime, end: datetime) -> list:
+        """Fetch history for an entity (sync, runs in executor).
+
+        Uses keyword arguments for state_changes_during_period since
+        async_add_executor_job passes positional args and the function
+        has many optional parameters with defaults.
+
+        Args:
+            entity_id: Entity ID to fetch history for
+            start: Start time (datetime)
+            end: End time (datetime)
+
+        Returns:
+            List of State objects for the entity
+        """
+        from homeassistant.components.recorder import history
+
+        # state_changes_during_period returns dict[entity_id, list[State]]
+        # We need keyword arguments here since the function has many optional params
+        result = history.state_changes_during_period(
+            self.hass,
+            start,
+            end,
+            entity_id,
+            include_start_time_state=True,
+            no_attributes=True,
+        )
+        return result.get(entity_id, [])
+
     async def _async_fetch_chart_history(self) -> None:
         """Pre-fetch history data for all chart widgets.
 
@@ -773,9 +802,6 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         # Get recorder instance
         try:
             from homeassistant.components.recorder import get_instance
-            from homeassistant.components.recorder import (
-                history as recorder_history,
-            )
         except ImportError:
             _LOGGER.debug("Recorder not available, charts will show no data")
             return
@@ -794,25 +820,18 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
                 hours = widget.hours
                 start_time = now - timedelta(hours=hours)
 
-                # Use state_changes_during_period (like history_stats does)
-                # This is simpler and more reliable than get_significant_states
-                # Signature: hass, start_time, end_time, entity_id, no_attributes,
-                #            descending, limit, include_start_time_state
-                history = await recorder.async_add_executor_job(
-                    recorder_history.state_changes_during_period,
-                    self.hass,
+                # Use wrapper method to fetch history with keyword arguments
+                # (async_add_executor_job only supports positional args, but
+                # state_changes_during_period needs keyword args for its many optional params)
+                history_states = await recorder.async_add_executor_job(
+                    self._fetch_entity_history,
+                    entity_id,
                     start_time,
                     now,
-                    entity_id,  # Single string, not list
-                    True,  # no_attributes
-                    False,  # descending
-                    None,  # limit
-                    True,  # include_start_time_state
                 )
 
-                if history and entity_id in history:
-                    # state_changes_during_period returns State objects
-                    values = extract_numeric_values(history[entity_id])
+                if history_states:
+                    values = extract_numeric_values(history_states)
 
                     if values:
                         widget.set_history(values)
