@@ -683,13 +683,16 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         # Get recorder instance
         try:
             from homeassistant.components.recorder import get_instance
-            from homeassistant.components.recorder.history import state_changes_during_period
+            from homeassistant.components.recorder import (
+                history as recorder_history,
+            )
         except ImportError:
             _LOGGER.debug("Recorder not available, charts will show no data")
             return
 
         recorder = get_instance(self.hass)
         if not recorder:
+            _LOGGER.debug("Recorder instance not available")
             return
 
         now = dt_util.utcnow()
@@ -699,13 +702,21 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
                 hours = widget.hours
                 start_time = now - timedelta(hours=hours)
 
-                # Fetch history from recorder
+                # Fetch history from recorder using get_significant_states
+                # Parameters: hass, start_time, end_time, entity_ids, filters,
+                #            include_start_time_state, significant_changes_only,
+                #            minimal_response, no_attributes, compressed_state_format
                 history = await recorder.async_add_executor_job(
-                    state_changes_during_period,
+                    recorder_history.get_significant_states,
                     self.hass,
                     start_time,
                     now,
-                    entity_id,
+                    [entity_id],  # Must be a list
+                    None,  # filters
+                    True,  # include_start_time_state
+                    False,  # significant_changes_only
+                    True,  # minimal_response
+                    True,  # no_attributes
                 )
 
                 if history and entity_id in history:
@@ -724,5 +735,12 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
                             len(values),
                             entity_id,
                         )
+                    else:
+                        _LOGGER.debug(
+                            "No numeric values in history for %s",
+                            entity_id,
+                        )
+                else:
+                    _LOGGER.debug("No history returned for %s", entity_id)
             except Exception as e:
-                _LOGGER.debug("Failed to fetch history for %s: %s", entity_id, e)
+                _LOGGER.warning("Failed to fetch history for %s: %s", entity_id, e)
