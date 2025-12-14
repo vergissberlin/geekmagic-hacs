@@ -470,10 +470,12 @@ export class GeekMagicPanel extends LitElement {
     if (existingIndex >= 0) {
       widgets[existingIndex] = { ...widgets[existingIndex], ...updates };
     } else {
-      widgets.push({ slot, type: "clock", ...updates });
+      widgets.push({ slot, type: "", ...updates });
     }
 
-    this._editingView = { ...this._editingView, widgets };
+    // Create new object to ensure Lit detects the change
+    this._editingView = { ...this._editingView, widgets: [...widgets] };
+    this.requestUpdate();
     this._refreshPreview();
   }
 
@@ -665,9 +667,11 @@ export class GeekMagicPanel extends LitElement {
             <ha-select
               label="Layout"
               .value=${this._editingView.layout}
-              @change=${(e: Event) => {
-                const value = (e.target as any).value;
-                this._updateEditingView({ layout: value });
+              @selected=${(e: CustomEvent) => {
+                const index = e.detail.index as number;
+                const keys = Object.keys(this._config!.layout_types);
+                const value = keys[index];
+                if (value) this._updateEditingView({ layout: value });
               }}
               @closed=${(e: Event) => e.stopPropagation()}
             >
@@ -682,9 +686,11 @@ export class GeekMagicPanel extends LitElement {
             <ha-select
               label="Theme"
               .value=${this._editingView.theme}
-              @change=${(e: Event) => {
-                const value = (e.target as any).value;
-                this._updateEditingView({ theme: value });
+              @selected=${(e: CustomEvent) => {
+                const index = e.detail.index as number;
+                const keys = Object.keys(this._config!.themes);
+                const value = keys[index];
+                if (value) this._updateEditingView({ theme: value });
               }}
               @closed=${(e: Event) => e.stopPropagation()}
             >
@@ -748,8 +754,10 @@ export class GeekMagicPanel extends LitElement {
             <ha-select
               label="Widget Type"
               .value=${widgetType}
-              @change=${(e: Event) => {
-                const value = (e.target as any).value;
+              @selected=${(e: CustomEvent) => {
+                const index = e.detail.index as number;
+                const keys = ["", ...Object.keys(this._config!.widget_types)];
+                const value = keys[index] || "";
                 this._updateWidget(slot, { type: value });
               }}
               @closed=${(e: Event) => e.stopPropagation()}

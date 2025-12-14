@@ -45,7 +45,7 @@ const pe = (s) => new ae(typeof s == "string" ? s : s + "", void 0, G), ue = (s,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: _e, defineProperty: ve, getOwnPropertyDescriptor: fe, getOwnPropertyNames: me, getOwnPropertySymbols: $e, getPrototypeOf: ye } = Object, y = globalThis, X = y.trustedTypes, we = X ? X.emptyScript : "", I = y.reactiveElementPolyfillSupport, C = (s, e) => s, D = { toAttribute(s, e) {
+const { is: _e, defineProperty: ve, getOwnPropertyDescriptor: fe, getOwnPropertyNames: me, getOwnPropertySymbols: $e, getPrototypeOf: ye } = Object, y = globalThis, X = y.trustedTypes, we = X ? X.emptyScript : "", I = y.reactiveElementPolyfillSupport, V = (s, e) => s, D = { toAttribute(s, e) {
   switch (e) {
     case Boolean:
       s = s ? we : null;
@@ -103,13 +103,13 @@ let E = class extends HTMLElement {
     return this.elementProperties.get(e) ?? Y;
   }
   static _$Ei() {
-    if (this.hasOwnProperty(C("elementProperties"))) return;
+    if (this.hasOwnProperty(V("elementProperties"))) return;
     const e = ye(this);
     e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
   }
   static finalize() {
-    if (this.hasOwnProperty(C("finalized"))) return;
-    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(C("properties"))) {
+    if (this.hasOwnProperty(V("finalized"))) return;
+    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(V("properties"))) {
       const t = this.properties, i = [...me(t), ...$e(t)];
       for (const r of i) this.createProperty(r, t[r]);
     }
@@ -278,14 +278,14 @@ let E = class extends HTMLElement {
   firstUpdated(e) {
   }
 };
-E.elementStyles = [], E.shadowRootOptions = { mode: "open" }, E[C("elementProperties")] = /* @__PURE__ */ new Map(), E[C("finalized")] = /* @__PURE__ */ new Map(), I == null || I({ ReactiveElement: E }), (y.reactiveElementVersions ?? (y.reactiveElementVersions = [])).push("2.1.1");
+E.elementStyles = [], E.shadowRootOptions = { mode: "open" }, E[V("elementProperties")] = /* @__PURE__ */ new Map(), E[V("finalized")] = /* @__PURE__ */ new Map(), I == null || I({ ReactiveElement: E }), (y.reactiveElementVersions ?? (y.reactiveElementVersions = [])).push("2.1.1");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const k = globalThis, j = k.trustedTypes, ee = j ? j.createPolicy("lit-html", { createHTML: (s) => s }) : void 0, ce = "$lit$", $ = `lit$${Math.random().toFixed(9).slice(2)}$`, le = "?" + $, be = `<${le}>`, A = document, O = () => A.createComment(""), H = (s) => s === null || typeof s != "object" && typeof s != "function", J = Array.isArray, xe = (s) => J(s) || typeof (s == null ? void 0 : s[Symbol.iterator]) == "function", B = `[ 	
-\f\r]`, V = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, te = /-->/g, ie = />/g, w = RegExp(`>|${B}(?:([^\\s"'>=/]+)(${B}*=${B}*(?:[^ 	
+const C = globalThis, j = C.trustedTypes, ee = j ? j.createPolicy("lit-html", { createHTML: (s) => s }) : void 0, ce = "$lit$", $ = `lit$${Math.random().toFixed(9).slice(2)}$`, le = "?" + $, be = `<${le}>`, A = document, O = () => A.createComment(""), H = (s) => s === null || typeof s != "object" && typeof s != "function", J = Array.isArray, xe = (s) => J(s) || typeof (s == null ? void 0 : s[Symbol.iterator]) == "function", B = `[ 	
+\f\r]`, k = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, te = /-->/g, ie = />/g, w = RegExp(`>|${B}(?:([^\\s"'>=/]+)(${B}*=${B}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), se = /'/g, re = /"/g, de = /^(?:script|style|textarea|title)$/i, Ae = (s) => (e, ...t) => ({ _$litType$: s, strings: e, values: t }), p = Ae(1), S = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), ne = /* @__PURE__ */ new WeakMap(), b = A.createTreeWalker(A, 129);
 function he(s, e) {
   if (!J(s) || !s.hasOwnProperty("raw")) throw Error("invalid template strings array");
@@ -293,13 +293,13 @@ function he(s, e) {
 }
 const Ee = (s, e) => {
   const t = s.length - 1, i = [];
-  let r, n = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = V;
+  let r, n = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = k;
   for (let c = 0; c < t; c++) {
     const a = s[c];
     let h, u, l = -1, v = 0;
-    for (; v < a.length && (o.lastIndex = v, u = o.exec(a), u !== null); ) v = o.lastIndex, o === V ? u[1] === "!--" ? o = te : u[1] !== void 0 ? o = ie : u[2] !== void 0 ? (de.test(u[2]) && (r = RegExp("</" + u[2], "g")), o = w) : u[3] !== void 0 && (o = w) : o === w ? u[0] === ">" ? (o = r ?? V, l = -1) : u[1] === void 0 ? l = -2 : (l = o.lastIndex - u[2].length, h = u[1], o = u[3] === void 0 ? w : u[3] === '"' ? re : se) : o === re || o === se ? o = w : o === te || o === ie ? o = V : (o = w, r = void 0);
+    for (; v < a.length && (o.lastIndex = v, u = o.exec(a), u !== null); ) v = o.lastIndex, o === k ? u[1] === "!--" ? o = te : u[1] !== void 0 ? o = ie : u[2] !== void 0 ? (de.test(u[2]) && (r = RegExp("</" + u[2], "g")), o = w) : u[3] !== void 0 && (o = w) : o === w ? u[0] === ">" ? (o = r ?? k, l = -1) : u[1] === void 0 ? l = -2 : (l = o.lastIndex - u[2].length, h = u[1], o = u[3] === void 0 ? w : u[3] === '"' ? re : se) : o === re || o === se ? o = w : o === te || o === ie ? o = k : (o = w, r = void 0);
     const m = o === w && s[c + 1].startsWith("/>") ? " " : "";
-    n += o === V ? a + be : l >= 0 ? (i.push(h), a.slice(0, l) + ce + a.slice(l) + $ + m) : a + $ + (l === -2 ? c : m);
+    n += o === k ? a + be : l >= 0 ? (i.push(h), a.slice(0, l) + ce + a.slice(l) + $ + m) : a + $ + (l === -2 ? c : m);
   }
   return [he(s, n + (s[t] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), i];
 };
@@ -317,7 +317,7 @@ class U {
       if (r.nodeType === 1) {
         if (r.hasAttributes()) for (const l of r.getAttributeNames()) if (l.endsWith(ce)) {
           const v = u[o++], m = r.getAttribute(l).split($), N = /([.?@])?(.*)/.exec(v);
-          a.push({ type: 1, index: n, name: N[2], strings: m, ctor: N[1] === "." ? Pe : N[1] === "?" ? Ve : N[1] === "@" ? Ce : z }), r.removeAttribute(l);
+          a.push({ type: 1, index: n, name: N[2], strings: m, ctor: N[1] === "." ? Pe : N[1] === "?" ? ke : N[1] === "@" ? Ve : z }), r.removeAttribute(l);
         } else l.startsWith($) && (a.push({ type: 6, index: n }), r.removeAttribute(l));
         if (de.test(r.tagName)) {
           const l = r.textContent.split($), v = l.length - 1;
@@ -364,7 +364,7 @@ class Se {
     for (; a !== void 0; ) {
       if (o === a.index) {
         let h;
-        a.type === 2 ? h = new T(n, n.nextSibling, this, e) : a.type === 1 ? h = new a.ctor(n, a.name, a.strings, this, e) : a.type === 6 && (h = new ke(n, this, e)), this._$AV.push(h), a = i[++c];
+        a.type === 2 ? h = new T(n, n.nextSibling, this, e) : a.type === 1 ? h = new a.ctor(n, a.name, a.strings, this, e) : a.type === 6 && (h = new Ce(n, this, e)), this._$AV.push(h), a = i[++c];
       }
       o !== (a == null ? void 0 : a.index) && (n = b.nextNode(), o++);
     }
@@ -471,7 +471,7 @@ class Pe extends z {
     this.element[this.name] = e === d ? void 0 : e;
   }
 }
-class Ve extends z {
+class ke extends z {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -479,7 +479,7 @@ class Ve extends z {
     this.element.toggleAttribute(this.name, !!e && e !== d);
   }
 }
-class Ce extends z {
+class Ve extends z {
   constructor(e, t, i, r, n) {
     super(e, t, i, r, n), this.type = 5;
   }
@@ -493,7 +493,7 @@ class Ce extends z {
     typeof this._$AH == "function" ? this._$AH.call(((t = this.options) == null ? void 0 : t.host) ?? this.element, e) : this._$AH.handleEvent(e);
   }
 }
-class ke {
+class Ce {
   constructor(e, t, i) {
     this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = i;
   }
@@ -504,8 +504,8 @@ class ke {
     P(this, e);
   }
 }
-const W = k.litHtmlPolyfillSupport;
-W == null || W(U, T), (k.litHtmlVersions ?? (k.litHtmlVersions = [])).push("3.3.1");
+const W = C.litHtmlPolyfillSupport;
+W == null || W(U, T), (C.litHtmlVersions ?? (C.litHtmlVersions = [])).push("3.3.1");
 const Me = (s, e, t) => {
   const i = (t == null ? void 0 : t.renderBefore) ?? e;
   let r = i._$litPart$;
@@ -716,7 +716,7 @@ let g = class extends M {
   _updateWidget(s, e) {
     if (!this._editingView) return;
     const t = [...this._editingView.widgets], i = t.findIndex((r) => r.slot === s);
-    i >= 0 ? t[i] = { ...t[i], ...e } : t.push({ slot: s, type: "clock", ...e }), this._editingView = { ...this._editingView, widgets: t }, this._refreshPreview();
+    i >= 0 ? t[i] = { ...t[i], ...e } : t.push({ slot: s, type: "", ...e }), this._editingView = { ...this._editingView, widgets: [...t] }, this.requestUpdate(), this._refreshPreview();
   }
   async _toggleDeviceView(s, e, t) {
     const i = t ? [...s.assigned_views, e] : s.assigned_views.filter((r) => r !== e);
@@ -879,9 +879,9 @@ let g = class extends M {
             <ha-select
               label="Layout"
               .value=${this._editingView.layout}
-              @change=${(t) => {
-      const i = t.target.value;
-      this._updateEditingView({ layout: i });
+              @selected=${(t) => {
+      const i = t.detail.index, n = Object.keys(this._config.layout_types)[i];
+      n && this._updateEditingView({ layout: n });
     }}
               @closed=${(t) => t.stopPropagation()}
             >
@@ -896,9 +896,9 @@ let g = class extends M {
             <ha-select
               label="Theme"
               .value=${this._editingView.theme}
-              @change=${(t) => {
-      const i = t.target.value;
-      this._updateEditingView({ theme: i });
+              @selected=${(t) => {
+      const i = t.detail.index, n = Object.keys(this._config.themes)[i];
+      n && this._updateEditingView({ theme: n });
     }}
               @closed=${(t) => t.stopPropagation()}
             >
@@ -955,9 +955,9 @@ let g = class extends M {
             <ha-select
               label="Widget Type"
               .value=${t}
-              @change=${(n) => {
-      const o = n.target.value;
-      this._updateWidget(s, { type: o });
+              @selected=${(n) => {
+      const o = n.detail.index, a = ["", ...Object.keys(this._config.widget_types)][o] || "";
+      this._updateWidget(s, { type: a });
     }}
               @closed=${(n) => n.stopPropagation()}
             >
