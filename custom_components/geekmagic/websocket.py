@@ -763,5 +763,5 @@ async def _notify_coordinators_of_view_change(hass: HomeAssistant, view_id: str)
         coordinator: GeekMagicCoordinator = data
         assigned = coordinator.options.get("assigned_views", [])
         if view_id in assigned:
-            # Trigger refresh
-            await coordinator.async_refresh_display()
+            # Reload views from store and refresh display
+            await coordinator.async_reload_views()

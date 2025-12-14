@@ -616,6 +616,15 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         self._update_preview = True  # Update preview on manual refresh
         await self.async_request_refresh()
 
+    async def async_reload_views(self) -> None:
+        """Reload views from store and refresh display.
+
+        Call this when a global view's content has been updated.
+        """
+        self._setup_screens()
+        self._update_preview = True
+        await self.async_request_refresh()
+
     async def _async_fetch_camera_images(self) -> None:
         """Pre-fetch camera images for all camera widgets.
 
