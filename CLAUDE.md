@@ -287,3 +287,30 @@ result = await hass.async_add_executor_job(
 - **HTTP upload to device**: Uses aiohttp (async-native)
 
 See: https://developers.home-assistant.io/docs/asyncio_blocking_operations/
+
+## Frontend Panel
+
+The integration includes a custom panel for configuring displays via the HA sidebar.
+
+### Building the Frontend
+
+After making changes to the frontend source in `custom_components/geekmagic/frontend/`:
+
+```bash
+cd custom_components/geekmagic/frontend
+npm install    # First time only
+npm run build  # Build production bundle
+```
+
+**Important**: The built `dist/` directory must be committed to git. Users install via HACS which clones the repo directly - there's no build step during installation.
+
+### Cache Busting
+
+The panel uses version-based cache busting. When the integration version in `manifest.json` changes, browsers will automatically fetch the new JS bundle (via `?v={version}` query parameter).
+
+### After Frontend Changes
+
+1. Make changes in `frontend/src/`
+2. Run `npm run build` to regenerate `dist/`
+3. Commit both source and dist changes
+4. Bump version in `manifest.json` if releasing

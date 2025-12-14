@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 
 from homeassistant.core import HomeAssistant
+from homeassistant.loader import async_get_integration
 
 from .const import DOMAIN
 
@@ -19,7 +20,7 @@ PANEL_NAME = "geekmagic-panel"
 PANEL_TITLE = "GeekMagic"
 PANEL_ICON = "mdi:monitor-dashboard"
 PANEL_URL_PATH = "geekmagic"
-PANEL_MODULE_URL = "/geekmagic_panel/geekmagic-panel.js"
+PANEL_MODULE_URL_BASE = "/geekmagic_panel/geekmagic-panel.js"
 
 # Frontend files location
 FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
@@ -52,6 +53,15 @@ async def async_register_panel(hass: HomeAssistant) -> bool:
         )
         # Don't fail - panel_custom might not be needed in test environments
         return True
+
+    # Get integration version for cache busting
+    # This ensures browsers fetch new JS when the integration updates
+    try:
+        integration = await async_get_integration(hass, DOMAIN)
+        version = str(integration.version) if integration.version else "dev"
+    except Exception:
+        version = "dev"
+    module_url = f"{PANEL_MODULE_URL_BASE}?v={version}"
 
     # Check if frontend files exist
     panel_js = FRONTEND_DIR / "geekmagic-panel.js"
@@ -92,7 +102,7 @@ async def async_register_panel(hass: HomeAssistant) -> bool:
             hass,
             webcomponent_name=PANEL_NAME,
             frontend_url_path=PANEL_URL_PATH,
-            module_url=PANEL_MODULE_URL,
+            module_url=module_url,
             sidebar_title=PANEL_TITLE,
             sidebar_icon=PANEL_ICON,
             require_admin=True,
@@ -100,7 +110,7 @@ async def async_register_panel(hass: HomeAssistant) -> bool:
                 "domain": DOMAIN,
             },
         )
-        _LOGGER.info("Registered GeekMagic panel at /%s", PANEL_URL_PATH)
+        _LOGGER.info("Registered GeekMagic panel at /%s (v%s)", PANEL_URL_PATH, version)
     except Exception:
         _LOGGER.exception("Failed to register panel")
         return False
