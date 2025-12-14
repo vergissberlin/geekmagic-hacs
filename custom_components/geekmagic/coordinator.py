@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, cast
 from homeassistant.const import __version__ as ha_version
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .const import (
     COLOR_CYAN,
@@ -514,8 +515,9 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
                         self._current_screen,
                     )
 
-            # Pre-fetch camera images (must be done in async context)
+            # Pre-fetch camera images and chart history (must be done in async context)
             await self._async_fetch_camera_images()
+            await self._async_fetch_chart_history()
 
             # Render image in executor to avoid blocking the event loop
             # (Pillow image operations are CPU-intensive)
@@ -657,3 +659,70 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
             Image bytes or None if not available
         """
         return self._camera_images.get(entity_id)
+
+    async def _async_fetch_chart_history(self) -> None:
+        """Pre-fetch history data for all chart widgets.
+
+        This must be called from the async context before rendering,
+        since recorder queries are async.
+        """
+        # Find all chart widgets in current layout
+        chart_widgets: list[tuple[str, ChartWidget]] = []
+
+        if self._layouts and 0 <= self._current_screen < len(self._layouts):
+            layout = self._layouts[self._current_screen]
+            for slot in layout.slots:
+                if slot.widget and isinstance(slot.widget, ChartWidget):
+                    entity_id = slot.widget.config.entity_id
+                    if entity_id:
+                        chart_widgets.append((entity_id, slot.widget))
+
+        if not chart_widgets:
+            return
+
+        # Get recorder instance
+        try:
+            from homeassistant.components.recorder import get_instance
+            from homeassistant.components.recorder.history import state_changes_during_period
+        except ImportError:
+            _LOGGER.debug("Recorder not available, charts will show no data")
+            return
+
+        recorder = get_instance(self.hass)
+        if not recorder:
+            return
+
+        now = dt_util.utcnow()
+
+        for entity_id, widget in chart_widgets:
+            try:
+                hours = widget.hours
+                start_time = now - timedelta(hours=hours)
+
+                # Fetch history from recorder
+                history = await recorder.async_add_executor_job(
+                    state_changes_during_period,
+                    self.hass,
+                    start_time,
+                    now,
+                    entity_id,
+                )
+
+                if history and entity_id in history:
+                    # Extract numeric values from states
+                    values: list[float] = []
+                    for state in history[entity_id]:
+                        try:
+                            values.append(float(state.state))
+                        except (ValueError, TypeError):
+                            continue
+
+                    if values:
+                        widget.set_history(values)
+                        _LOGGER.debug(
+                            "Fetched %d history points for %s",
+                            len(values),
+                            entity_id,
+                        )
+            except Exception as e:
+                _LOGGER.debug("Failed to fetch history for %s: %s", entity_id, e)

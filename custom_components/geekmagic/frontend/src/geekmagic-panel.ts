@@ -75,7 +75,29 @@ export class GeekMagicPanel extends LitElement {
 
     .header-tabs {
       margin-left: auto;
-      --mdc-tab-text-label-color-default: var(--primary-text-color);
+      display: flex;
+      gap: 4px;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--secondary-text-color);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+      background: var(--secondary-background-color);
+    }
+
+    .tab-button.active {
+      color: var(--primary-color);
+      background: var(--primary-color-alpha, rgba(3, 169, 244, 0.1));
     }
 
     .content {
@@ -517,15 +539,20 @@ export class GeekMagicPanel extends LitElement {
         <span class="header-title">GeekMagic</span>
         ${this._page !== "editor"
           ? html`
-              <mwc-tab-bar
-                class="header-tabs"
-                @MDCTabBar:activated=${(e: CustomEvent) => {
-                  this._page = e.detail.index === 0 ? "views" : "devices";
-                }}
-              >
-                <mwc-tab label="Views" ?active=${this._page === "views"}></mwc-tab>
-                <mwc-tab label="Devices" ?active=${this._page === "devices"}></mwc-tab>
-              </mwc-tab-bar>
+              <div class="header-tabs">
+                <button
+                  class="tab-button ${this._page === "views" ? "active" : ""}"
+                  @click=${() => (this._page = "views")}
+                >
+                  Views
+                </button>
+                <button
+                  class="tab-button ${this._page === "devices" ? "active" : ""}"
+                  @click=${() => (this._page = "devices")}
+                >
+                  Devices
+                </button>
+              </div>
             `
           : nothing}
       </div>
