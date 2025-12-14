@@ -256,11 +256,46 @@ export class GeekMagicPanel extends LitElement {
       margin-top: 0;
     }
 
-    /* Slots Grid */
+    /* Slots Grid - matches actual layout */
     .slots-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
+      max-width: 900px;
+    }
+
+    /* Layout-specific grids */
+    .slots-grid.layout-grid_2x2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slots-grid.layout-grid_2x3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slots-grid.layout-grid_3x2 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .slots-grid.layout-hero {
+      /* Hero: 1 large on top, 3 small on bottom */
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .slots-grid.layout-hero .slot-card:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .slots-grid.layout-split {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slots-grid.layout-three_column {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Fallback for unknown layouts */
+    .slots-grid:not([class*="layout-"]) {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 
     .slot-card {
@@ -807,7 +842,7 @@ export class GeekMagicPanel extends LitElement {
           </div>
 
           <div class="section-title">Widgets</div>
-          <div class="slots-grid">
+          <div class="slots-grid layout-${this._editingView.layout}">
             ${Array.from({ length: slotCount }, (_, i) =>
               this._renderSlotEditor(i)
             )}
