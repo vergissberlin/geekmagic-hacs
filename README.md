@@ -2,6 +2,10 @@
 
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/09890b95-8a94-4df9-bf2f-6b9a6ac0d5e9" alt="GeekMagic Display running Home Assistant dashboard" width="400">
+</p>
+
 A Home Assistant custom integration for GeekMagic displays (SmallTV Pro, Ultra, and similar ESP8266/ESP32-based devices).
 
 > **How it works:** This integration renders dashboard images directly in Home Assistant using Python/Pillow and pushes them to your GeekMagic device over HTTP. No flashing required - works with stock firmware.
@@ -147,7 +151,7 @@ Create and manage display views:
 The editor provides a live preview and widget configuration:
 
 <p align="center">
-  <img src="docs/panel-editor.png" alt="GeekMagic Panel Editor" width="800">
+  <img src="https://github.com/user-attachments/assets/e3420b9e-a325-49ea-8ab9-2133ae7f0a20" alt="GeekMagic View Editor" width="700">
 </p>
 
 - **Preview**: See real-time rendering as you configure
@@ -163,6 +167,14 @@ Assign views to your GeekMagic devices:
 - Check which views each device should display
 - Devices automatically cycle through assigned views
 - Drag to reorder the rotation sequence
+
+#### Device Info Page
+
+Each device exposes entities for brightness, refresh interval, mode selection, and status:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ddbc7f2d-2e9a-4a22-8eb8-248f26e9adf4" alt="GeekMagic Device Info" width="700">
+</p>
 
 ---
 
