@@ -131,6 +131,18 @@ class TestGeekMagicDevice:
         assert space.free == 524288
 
     @pytest.mark.asyncio
+    async def test_get_brightness(self, mock_session, mock_response):
+        """Test getting brightness."""
+        # API returns brightness as string
+        mock_response.json = AsyncMock(return_value={"brt": "71"})
+
+        device = GeekMagicDevice("192.168.1.100", session=mock_session)
+        brightness = await device.get_brightness()
+
+        assert brightness == 71
+        mock_session.get.assert_called_once_with("http://192.168.1.100/brt.json")
+
+    @pytest.mark.asyncio
     async def test_set_brightness(self, mock_session, mock_response):
         """Test setting brightness."""
         device = GeekMagicDevice("192.168.1.100", session=mock_session)
@@ -222,7 +234,8 @@ class TestGeekMagicDevice:
     @pytest.mark.asyncio
     async def test_test_connection_success(self, mock_session, mock_response):
         """Test connection test succeeds."""
-        mock_response.json = AsyncMock(return_value={"theme": 3})
+        # Connection test uses /space.json endpoint (wider firmware support)
+        mock_response.json = AsyncMock(return_value={"total": 1048576, "free": 524288})
 
         device = GeekMagicDevice("192.168.1.100", session=mock_session)
         result = await device.test_connection()
@@ -231,6 +244,7 @@ class TestGeekMagicDevice:
         assert result.error == "none"
         # ConnectionResult should be truthy when successful
         assert result
+        mock_session.get.assert_called_once_with("http://192.168.1.100/space.json")
 
     @pytest.mark.asyncio
     async def test_test_connection_failure(self, mock_session, mock_response):

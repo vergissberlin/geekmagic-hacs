@@ -128,6 +128,22 @@ class GeekMagicDevice:
             )
             return space
 
+    async def get_brightness(self) -> int:
+        """Get current brightness from device.
+
+        Returns:
+            Brightness level 0-100
+        """
+        _LOGGER.debug("Getting brightness from %s", self.host)
+        session = await self._get_session()
+        async with session.get(f"{self.base_url}/brt.json") as response:
+            response.raise_for_status()
+            data = await response.json(content_type=None)
+            # API returns brightness as string: {"brt": "71"}
+            brightness = int(data.get("brt", 0))
+            _LOGGER.debug("Device brightness: %d", brightness)
+            return brightness
+
     async def set_brightness(self, value: int) -> None:
         """Set display brightness.
 

@@ -52,16 +52,16 @@ class GeekMagicBrightnessNumber(GeekMagicEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        """Return current brightness."""
-        if self.coordinator.device_state:
-            return self.coordinator.device_state.brightness
-        return None
+        """Return current brightness from device."""
+        return self.coordinator.device_brightness
 
     async def async_set_native_value(self, value: float) -> None:
         """Set brightness."""
-        await self.coordinator.device.set_brightness(int(value))
-        # Refresh state
-        await self.coordinator.async_request_refresh()
+        brightness = int(value)
+        await self.coordinator.device.set_brightness(brightness)
+        # Update local cache immediately so UI reflects change
+        self.coordinator.device_brightness = brightness
+        self.async_write_ha_state()
 
 
 class GeekMagicRefreshIntervalNumber(GeekMagicEntity, NumberEntity):

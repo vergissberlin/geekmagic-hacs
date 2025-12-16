@@ -199,6 +199,9 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         # Device state (updated on refresh)
         self._device_state: DeviceState | None = None
         self._space_info: SpaceInfo | None = None
+        self._device_brightness: int | None = None
+        self._last_brightness_poll: float = 0  # Timestamp of last brightness poll
+        self._brightness_poll_interval: float = 600  # 10 minutes
 
         # Get refresh interval from options
         interval = self.options.get(CONF_REFRESH_INTERVAL, DEFAULT_REFRESH_INTERVAL)
@@ -597,6 +600,19 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
                         self._current_screen,
                     )
 
+            # Poll device brightness on first update and every 10 minutes
+            now = time.time()
+            if (
+                self._device_brightness is None
+                or now - self._last_brightness_poll >= self._brightness_poll_interval
+            ):
+                try:
+                    self._device_brightness = await self.device.get_brightness()
+                    self._last_brightness_poll = now
+                    _LOGGER.debug("Polled device brightness: %d", self._device_brightness)
+                except Exception as e:
+                    _LOGGER.debug("Failed to poll device brightness: %s", e)
+
             # Fetch device state and storage info
             try:
                 self._device_state = await self.device.get_state()
@@ -701,6 +717,16 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
     def device_state(self) -> DeviceState | None:
         """Get current device state."""
         return self._device_state
+
+    @property
+    def device_brightness(self) -> int | None:
+        """Get device brightness from /brt.json endpoint."""
+        return self._device_brightness
+
+    @device_brightness.setter
+    def device_brightness(self, value: int) -> None:
+        """Set device brightness cache."""
+        self._device_brightness = value
 
     @property
     def space_info(self) -> SpaceInfo | None:
