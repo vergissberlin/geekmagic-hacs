@@ -165,7 +165,7 @@ class TestLayoutBarGauge:
         """Test layout without label."""
         mock_ctx.width = 70
 
-        use_vertical, boxes = layout_bar_gauge(
+        _use_vertical, boxes = layout_bar_gauge(
             mock_ctx, value_text="50%", label_text=None, has_icon=False
         )
 

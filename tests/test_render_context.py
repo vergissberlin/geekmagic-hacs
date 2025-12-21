@@ -22,7 +22,7 @@ class TestRenderContextInit:
     def test_init_calculates_width_and_height(self):
         """Test that width and height are calculated from rect."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (10, 20, 110, 120)  # 100x100 widget
         ctx = RenderContext(draw, rect, renderer)
@@ -33,7 +33,7 @@ class TestRenderContextInit:
     def test_init_stores_origin(self):
         """Test that origin position is stored correctly."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (50, 75, 150, 175)
         ctx = RenderContext(draw, rect, renderer)
@@ -45,7 +45,7 @@ class TestRenderContextInit:
     def test_init_full_canvas_rect(self):
         """Test RenderContext with full canvas rect."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT)
         ctx = RenderContext(draw, rect, renderer)
@@ -60,7 +60,7 @@ class TestCoordinateTranslation:
     def test_abs_point_translates_origin(self):
         """Test that _abs_point translates local to absolute coordinates."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (50, 100, 150, 200)  # Origin at (50, 100)
         ctx = RenderContext(draw, rect, renderer)
@@ -76,7 +76,7 @@ class TestCoordinateTranslation:
     def test_abs_rect_translates_bounds(self):
         """Test that _abs_rect translates local rect to absolute."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (50, 100, 150, 200)  # Origin at (50, 100)
         ctx = RenderContext(draw, rect, renderer)
@@ -92,7 +92,7 @@ class TestFontMethods:
     def test_get_font_returns_font(self):
         """Test that get_font returns a font object."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (0, 0, 120, 80)
         ctx = RenderContext(draw, rect, renderer)
@@ -103,7 +103,7 @@ class TestFontMethods:
     def test_get_font_respects_size_name(self):
         """Test that different size names produce different fonts."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (0, 0, 200, 200)
         ctx = RenderContext(draw, rect, renderer)
@@ -122,7 +122,7 @@ class TestFontMethods:
     def test_get_font_bold(self):
         """Test that bold parameter is accepted."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (0, 0, 120, 80)
         ctx = RenderContext(draw, rect, renderer)
@@ -134,7 +134,7 @@ class TestFontMethods:
     def test_get_text_size_with_default_font(self):
         """Test get_text_size with default font."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (0, 0, 120, 80)
         ctx = RenderContext(draw, rect, renderer)
@@ -146,7 +146,7 @@ class TestFontMethods:
     def test_get_text_size_with_custom_font(self):
         """Test get_text_size with specific font."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         rect = (0, 0, 120, 80)
         ctx = RenderContext(draw, rect, renderer)
@@ -368,7 +368,7 @@ class TestColorUtilities:
     def test_dim_color(self):
         """Test color dimming."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         ctx = RenderContext(draw, (0, 0, 100, 100), renderer)
 
@@ -380,7 +380,7 @@ class TestColorUtilities:
     def test_dim_color_zero(self):
         """Test dimming to zero."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         ctx = RenderContext(draw, (0, 0, 100, 100), renderer)
 
@@ -392,7 +392,7 @@ class TestColorUtilities:
     def test_blend_color(self):
         """Test color blending."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         ctx = RenderContext(draw, (0, 0, 100, 100), renderer)
 
@@ -405,7 +405,7 @@ class TestColorUtilities:
     def test_blend_color_extremes(self):
         """Test blending at extreme factors."""
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         ctx = RenderContext(draw, (0, 0, 100, 100), renderer)
 
@@ -495,7 +495,7 @@ class TestRenderContextIntegration:
         large enough to show the difference.
         """
         renderer = Renderer()
-        img, draw = renderer.create_canvas()
+        _img, draw = renderer.create_canvas()
 
         # Medium widget - should hit minimum font sizes
         medium_rect = (0, 0, 120, 80)

@@ -197,7 +197,7 @@ class TestRow:
     def test_measure_with_gap(self, mock_ctx: MagicMock) -> None:
         """Test row measurement includes gap."""
         row = Row(children=[Text("A"), Text("B")], gap=10)
-        w, h = row.measure(mock_ctx, 200, 100)
+        w, _h = row.measure(mock_ctx, 200, 100)
         assert w == 40 + 10 + 40  # two texts + gap
 
     def test_measure_with_padding(self, mock_ctx: MagicMock) -> None:
@@ -228,7 +228,7 @@ class TestColumn:
     def test_measure_with_gap(self, mock_ctx: MagicMock) -> None:
         """Test column measurement includes gap."""
         col = Column(children=[Text("A"), Text("B")], gap=10)
-        w, h = col.measure(mock_ctx, 200, 100)
+        _w, h = col.measure(mock_ctx, 200, 100)
         assert h == 16 + 10 + 16  # two texts + gap
 
     def test_measure_with_padding(self, mock_ctx: MagicMock) -> None:
