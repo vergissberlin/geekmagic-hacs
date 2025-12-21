@@ -96,6 +96,7 @@ class ProgressDisplay(Component):
                 ],
                 gap=int(height * 0.10),
                 justify="center",
+                align="stretch",
             ).render(ctx, x, y, width, height)
 
         else:
@@ -152,6 +153,7 @@ class ProgressDisplay(Component):
                 ],
                 gap=int(height * 0.10),
                 justify="center",
+                align="stretch",
             ).render(ctx, x, y, width, height)
 
 
@@ -269,6 +271,7 @@ class MultiProgressDisplay(Component):
                 ],
                 gap=int(row_height * 0.15),
                 justify="center",
+                align="stretch",  # Stretch rows to full width for Spacer to work
             )
             children.append(item_column)
 
@@ -277,6 +280,7 @@ class MultiProgressDisplay(Component):
             children=children,
             gap=int(height * 0.02),
             justify="start",
+            align="stretch",  # Stretch to full width
             padding=0,
         ).render(ctx, x, y, width, height)
 

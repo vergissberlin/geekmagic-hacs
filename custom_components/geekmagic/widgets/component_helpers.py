@@ -137,12 +137,20 @@ def ArcGauge(
             Column(
                 justify="start",
                 align="center",
-                padding=6,
+                padding=4,
                 children=[
                     Text(label.upper(), font="tiny", color=COLOR_GRAY),
                 ],
             ),
-            Arc(percent=percent, color=color, background=background),
+            # Add top padding to arc so it doesn't overlap with label
+            Column(
+                justify="center",
+                align="center",
+                padding=12,
+                children=[
+                    Arc(percent=percent, color=color, background=background),
+                ],
+            ),
             Column(
                 align="center",
                 justify="center",
