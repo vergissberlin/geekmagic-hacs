@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -15,105 +14,54 @@ if TYPE_CHECKING:
     from .state import WidgetState
 
 
-@dataclass
-class ClockDisplay(Component):
-    """Clock display component with time, date, and optional label.
+def ClockDisplay(
+    time_str: str,
+    date_str: str | None = None,
+    ampm: str | None = None,
+    label: str | None = None,
+    time_color: Color = COLOR_WHITE,
+    date_color: Color = COLOR_GRAY,
+    label_color: Color = COLOR_GRAY,
+) -> Component:
+    """Create clock display using primitive components.
 
     Time uses FillText to fill available space, date scales proportionally.
     """
+    children: list[Component] = []
 
-    time_str: str
-    date_str: str | None = None
-    ampm: str | None = None
-    label: str | None = None
-    time_color: Color = COLOR_WHITE
-    date_color: Color = COLOR_GRAY
-    label_color: Color = COLOR_GRAY
+    # Add label at top if provided
+    if label:
+        children.append(Text(label.upper(), font="tertiary", color=label_color))
 
-    def measure(
-        self, ctx: RenderContext, max_width: int, max_height: int
-    ) -> tuple[int, int]:
-        return (max_width, max_height)
-
-    def render(
-        self, ctx: RenderContext, x: int, y: int, width: int, height: int
-    ) -> None:
-        """Render clock with time filling available space."""
-        center_x = x + width // 2
-
-        # Calculate space allocation
-        has_date = self.date_str is not None and height > 60
-        has_label = self.label is not None and height > 80
-
-        # Time gets primary space
-        time_height_ratio = 0.55 if has_date else 0.70
-        if has_label:
-            time_height_ratio *= 0.85
-
-        # Fit time text
-        time_font = ctx.fit_text(
-            self.time_str,
-            max_width=int(width * 0.90),
-            max_height=int(height * time_height_ratio),
-            bold=False,
+    # Time display - fills available space
+    if ampm:
+        # 12-hour format: time + AM/PM in a row
+        children.append(
+            Row(
+                children=[
+                    FillText(time_str, hierarchy="primary", color=time_color),
+                    Text(ampm, font="tertiary", color=COLOR_GRAY),
+                ],
+                gap=4,
+                align="end",
+                justify="center",
+            )
         )
-        time_w, time_h = ctx.get_text_size(self.time_str, time_font)
+    else:
+        # 24-hour format: just time
+        children.append(FillText(time_str, hierarchy="primary", color=time_color))
 
-        # Calculate positions
-        center_y = y + height // 2
+    # Add date below time
+    if date_str:
+        children.append(FillText(date_str, hierarchy="secondary", color=date_color))
 
-        if has_date and self.date_str:
-            date_font = ctx.fit_text(
-                self.date_str,
-                max_width=int(width * 0.90),
-                max_height=int(height * 0.18),
-            )
-            date_h = ctx.get_text_size(self.date_str, date_font)[1]
-            gap = int(height * 0.05)
-            total_h = time_h + gap + date_h
-            time_y = center_y - total_h // 2 + time_h // 2
-            date_y = time_y + time_h // 2 + gap + date_h // 2
-        else:
-            time_y = center_y
-            date_y = 0
-            date_font = ctx.get_font("tertiary")
-
-        # Adjust for label
-        if has_label:
-            offset = int(height * 0.08)
-            time_y += offset // 2
-            date_y += offset // 2
-
-        # Draw time
-        ctx.draw_text(
-            self.time_str, (center_x, time_y), time_font, self.time_color, "mm"
-        )
-
-        # Draw AM/PM
-        if self.ampm:
-            ampm_font = ctx.get_font("tertiary")
-            ampm_x = center_x + time_w // 2 + 3
-            ctx.draw_text(
-                self.ampm,
-                (ampm_x, time_y - time_h // 3),
-                ampm_font,
-                COLOR_GRAY,
-                "lm",
-            )
-
-        # Draw date
-        if has_date and self.date_str:
-            ctx.draw_text(
-                self.date_str, (center_x, date_y), date_font, self.date_color, "mm"
-            )
-
-        # Draw label
-        if has_label and self.label:
-            label_font = ctx.get_font("tertiary")
-            label_y = y + int(height * 0.10)
-            ctx.draw_text(
-                self.label.upper(), (center_x, label_y), label_font, self.label_color, "mm"
-            )
+    return Column(
+        children=children,
+        gap=4,
+        align="center",
+        justify="center",
+        padding=4,
+    )
 
 
 class ClockWidget(Widget):
