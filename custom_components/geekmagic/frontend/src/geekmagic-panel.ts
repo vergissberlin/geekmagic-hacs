@@ -632,6 +632,11 @@ export class GeekMagicPanel extends LitElement {
       color: white;
     }
 
+    .device-status a {
+      color: inherit;
+      text-decoration: none;
+    }
+
     .views-checkboxes {
       margin-top: 16px;
     }
@@ -882,7 +887,7 @@ export class GeekMagicPanel extends LitElement {
                         <div class="device-header">
                           <span class="device-name">${device.name}</span>
                           <span class="device-status ${device.online ? "online" : "offline"}">
-                            <a href="http://${device.host}" target="_blank">${device.online ? "Online" : "Offline"}</a>
+                            <a href="http://${device.host}" target="_blank" rel="noopener noreferrer">${device.online ? "Online" : "Offline"}</a>
                           </span>
                         </div>
                         <div class="views-checkboxes">

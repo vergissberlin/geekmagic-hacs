@@ -798,7 +798,7 @@ let g = class extends I {
                         <div class="device-header">
                           <span class="device-name">${s.name}</span>
                           <span class="device-status ${s.online ? "online" : "offline"}">
-                            ${s.online ? "Online" : "Offline"}
+                            <a href="http://${s.host}" target="_blank" rel="noopener noreferrer">${s.online ? "Online" : "Offline"}</a>
                           </span>
                         </div>
                         <div class="views-checkboxes">
@@ -2075,6 +2075,11 @@ g.styles = ue`
     .device-status.offline {
       background: var(--error-color, #f44336);
       color: white;
+    }
+
+    .device-status a {
+      color: inherit;
+      text-decoration: none;
     }
 
     .views-checkboxes {
