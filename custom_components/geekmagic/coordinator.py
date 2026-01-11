@@ -741,7 +741,7 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
             hero_widget = None
             image_url = data.get("image")
 
-            if image_url and image_url.startswith("camera."):
+            if image_url:
                 hero_widget = CameraWidget(
                     WidgetConfig(
                         widget_type="camera",
@@ -782,7 +782,7 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         # Slot 0 (Hero): Icon or Image
         hero_widget = None
         image_url = data.get("image")
-        if image_url and image_url.startswith("camera."):
+        if image_url:
             hero_widget = CameraWidget(
                 WidgetConfig(
                     widget_type="camera", slot=0, entity_id=image_url, options={"fit": "contain"}
@@ -1104,8 +1104,12 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         # Also fetch image for camera in notification
         if self._notification_data:
             image_url = self._notification_data.get("image")
-            if image_url and image_url.startswith("camera."):
-                camera_entity_ids.add(image_url)
+            if image_url:
+                if image_url.startswith("camera."):
+                    camera_entity_ids.add(image_url)
+                else:
+                    # Treat as Home Assistant entity with entity_picture
+                    await self._async_fetch_url_image_to_cache(image_url)
 
         # Fetch images for each camera
         for entity_id in camera_entity_ids:
@@ -1120,6 +1124,53 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
                     )
             except Exception as e:
                 _LOGGER.debug("Failed to fetch camera image for %s: %s", entity_id, e)
+
+    async def _async_fetch_url_image_to_cache(self, source: str) -> None:
+        """Fetch image from entity_picture and save to camera image cache.
+
+        Args:
+            source: Entity ID
+        """
+        import aiohttp
+
+        # Get state for the entity
+        state = self.hass.states.get(source)
+        if state:
+            image_url = state.attributes.get("entity_picture")
+
+        # Only allow internal Home Assistant URLs (starting with /)
+        if not image_url or not image_url.startswith("/"):
+            return
+
+        # Use internal URL from HA config
+        base_url = self.hass.config.internal_url
+        if not base_url:
+            return
+
+        # Ensure base_url doesn't have trailing slash and image_url has leading slash
+        full_url = f"{base_url.rstrip('/')}/{image_url.lstrip('/')}"
+
+        try:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(image_url, timeout=aiohttp.ClientTimeout(total=10)) as response,
+            ):
+                if response.status == 200:
+                    image_data = await response.read()
+                    self._camera_images[source] = image_data
+                    _LOGGER.debug(
+                        "Fetched image for notification from %s: %d bytes",
+                        source,
+                        len(image_data),
+                    )
+                else:
+                    _LOGGER.debug(
+                        "Failed to fetch notification image from %s: HTTP %d",
+                        source,
+                        response.status,
+                    )
+        except Exception as e:
+            _LOGGER.debug("Failed to fetch notification image from %s: %s", source, e)
 
     def get_camera_image(self, entity_id: str) -> bytes | None:
         """Get pre-fetched camera image.
@@ -1160,20 +1211,20 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
             if state is None:
                 continue
 
-            # Get entity_picture URL from attributes
+            # Get entity_picture from attributes
             entity_picture = state.attributes.get("entity_picture")
-            if not entity_picture:
-                # Clear any cached image if no picture available
+            if not entity_picture or not entity_picture.startswith("/"):
+                # Clear any cached image if no internal picture available
                 self._media_images.pop(entity_id, None)
                 continue
 
-            # Build full URL if relative
-            if entity_picture.startswith("/"):
-                # Use internal Home Assistant URL
-                base_url = self.hass.config.internal_url or "http://localhost:8123"
-                image_url = f"{base_url}{entity_picture}"
-            else:
-                image_url = entity_picture
+            # Use internal URL from HA config
+            base_url = self.hass.config.internal_url
+            if not base_url:
+                continue
+
+            # Ensure base_url doesn't have trailing slash and entity_picture has leading slash
+            image_url = f"{base_url.rstrip('/')}/{entity_picture.lstrip('/')}"
 
             try:
                 async with (

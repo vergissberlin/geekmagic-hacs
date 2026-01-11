@@ -108,6 +108,24 @@ class TestNotification:
         assert camera_widget.config.options["fit"] == "contain"
 
     @pytest.mark.asyncio
+    async def test_notification_layout_image_entity(self, hass, coordinator_device, options):
+        """Test notification layout with an image entity."""
+        coordinator = GeekMagicCoordinator(hass, coordinator_device, options)
+
+        data = {
+            "message": "Image Entity",
+            "image": "image.reolink_snap"
+        }
+
+        layout = coordinator._create_notification_layout(data)
+        assert isinstance(layout, HeroSimpleLayout)
+
+        # Slot 0 should be CameraWidget even for image. entities
+        image_widget = layout.get_slot(0).widget
+        assert image_widget.config.widget_type == "camera"
+        assert image_widget.config.entity_id == "image.reolink_snap"
+
+    @pytest.mark.asyncio
     async def test_notification_layout_icon_only(self, hass, coordinator_device, options):
         """Test notification with no message and no image (Fullscreen Icon)."""
         coordinator = GeekMagicCoordinator(hass, coordinator_device, options)
