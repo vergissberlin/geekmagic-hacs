@@ -54,14 +54,16 @@ class TestNotification:
 
         data = {"message": "Hello World", "title": "Alert", "duration": 5, "icon": "mdi:test"}
 
-        with patch("time.time", return_value=1000):
+        with (
+            patch("time.time", return_value=1000),
+            patch.object(hass.loop, "call_later") as mock_call_later,
+        ):
             await coordinator.trigger_notification(data)
 
             assert coordinator._notification_data == data
             assert coordinator._notification_expiry == 1005
             assert coordinator.async_request_refresh.called
-
-            assert coordinator.async_request_refresh.called
+            mock_call_later.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_notification_layout_creation(self, hass, coordinator_device, options):
