@@ -542,6 +542,13 @@ class GeekMagicCoordinator(DataUpdateCoordinator):
         if 0 <= screen_index < len(self._layouts):
             self._current_screen = screen_index
             self._last_screen_change = time.time()
+
+            # If in builtin mode, switch to custom mode so the screen change is rendered
+            if self._display_mode == "builtin":
+                _LOGGER.debug("Switching from builtin to custom mode for screen change")
+                self._display_mode = "custom"
+                await self.device.set_theme(3)
+
             await self.async_request_refresh()
 
     async def async_next_screen(self) -> None:
