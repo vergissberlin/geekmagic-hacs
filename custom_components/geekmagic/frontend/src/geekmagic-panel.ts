@@ -20,6 +20,7 @@ import type {
   StatusEntity,
   ColorThreshold,
 } from "./types";
+import { rgbToHex, parseColorInput, type RGBTuple } from "./color-utils";
 
 // Type declaration for Intl.supportedValuesOf (ES2022+)
 declare global {
@@ -634,6 +635,15 @@ export class GeekMagicPanel extends LitElement {
     }
 
     /* Color thresholds editor */
+    .threshold-item-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+    }
+
     .threshold-item {
       display: flex;
       align-items: center;
@@ -650,6 +660,37 @@ export class GeekMagicPanel extends LitElement {
       border: none;
       border-radius: 4px;
       cursor: pointer;
+    }
+
+    .threshold-hex-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 88px; /* Align with color picker (80px value + 8px gap) */
+    }
+
+    .threshold-hex-input {
+      flex: 1;
+    }
+
+    /* Color hex input fallback (Safari compatibility) */
+    .color-hex-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .color-hex-input ha-textfield {
+      flex: 1;
+    }
+
+    .color-preview-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      border: 1px solid var(--divider-color);
+      flex-shrink: 0;
     }
 
     /* Devices */
@@ -1360,6 +1401,25 @@ export class GeekMagicPanel extends LitElement {
               @value-changed=${(e: CustomEvent) =>
                 this._updateWidgetOption(slot, opt.key, e.detail.value)}
             ></ha-selector>
+            <div class="color-hex-input">
+              <div
+                class="color-preview-swatch"
+                style="background-color: ${rgbToHex(value as RGBTuple)}"
+              ></div>
+              <ha-textfield
+                .value=${rgbToHex(value as RGBTuple)}
+                .label=${"Hex (fallback)"}
+                placeholder="#FF5500 or 255,85,0"
+                @change=${(e: Event) => {
+                  const parsed = parseColorInput(
+                    (e.target as HTMLInputElement).value
+                  );
+                  if (parsed) {
+                    this._updateWidgetOption(slot, opt.key, parsed);
+                  }
+                }}
+              ></ha-textfield>
+            </div>
           </div>
         `;
 
@@ -1450,38 +1510,62 @@ export class GeekMagicPanel extends LitElement {
           <div class="array-items">
             ${items.map(
               (item, idx) => html`
-                <div class="threshold-item">
-                  <ha-textfield
-                    class="threshold-value"
-                    type="number"
-                    label="Value"
-                    .value=${String(item.value)}
-                    @input=${(e: Event) => {
-                      const newItems = [...items];
-                      newItems[idx] = {
-                        ...item,
-                        value: parseFloat((e.target as HTMLInputElement).value) || 0,
-                      };
-                      this._updateWidgetOption(slot, key, newItems);
-                    }}
-                  ></ha-textfield>
-                  <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ color_rgb: {} }}
-                    .value=${item.color}
-                    @value-changed=${(e: CustomEvent) => {
-                      const newItems = [...items];
-                      newItems[idx] = { ...item, color: e.detail.value };
-                      this._updateWidgetOption(slot, key, newItems);
-                    }}
-                  ></ha-selector>
-                  <ha-icon-button
-                    .path=${"M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"}
-                    @click=${() => {
-                      const newItems = items.filter((_, i) => i !== idx);
-                      this._updateWidgetOption(slot, key, newItems);
-                    }}
-                  ></ha-icon-button>
+                <div class="threshold-item-container">
+                  <div class="threshold-item">
+                    <ha-textfield
+                      class="threshold-value"
+                      type="number"
+                      label="Value"
+                      .value=${String(item.value)}
+                      @input=${(e: Event) => {
+                        const newItems = [...items];
+                        newItems[idx] = {
+                          ...item,
+                          value: parseFloat((e.target as HTMLInputElement).value) || 0,
+                        };
+                        this._updateWidgetOption(slot, key, newItems);
+                      }}
+                    ></ha-textfield>
+                    <ha-selector
+                      .hass=${this.hass}
+                      .selector=${{ color_rgb: {} }}
+                      .value=${item.color}
+                      @value-changed=${(e: CustomEvent) => {
+                        const newItems = [...items];
+                        newItems[idx] = { ...item, color: e.detail.value };
+                        this._updateWidgetOption(slot, key, newItems);
+                      }}
+                    ></ha-selector>
+                    <ha-icon-button
+                      .path=${"M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"}
+                      @click=${() => {
+                        const newItems = items.filter((_, i) => i !== idx);
+                        this._updateWidgetOption(slot, key, newItems);
+                      }}
+                    ></ha-icon-button>
+                  </div>
+                  <div class="threshold-hex-row">
+                    <div
+                      class="color-preview-swatch"
+                      style="background-color: ${rgbToHex(item.color as RGBTuple)}"
+                    ></div>
+                    <ha-textfield
+                      class="threshold-hex-input"
+                      .value=${rgbToHex(item.color as RGBTuple)}
+                      label="Hex (fallback)"
+                      placeholder="#FF5500"
+                      @change=${(e: Event) => {
+                        const parsed = parseColorInput(
+                          (e.target as HTMLInputElement).value
+                        );
+                        if (parsed) {
+                          const newItems = [...items];
+                          newItems[idx] = { ...item, color: parsed };
+                          this._updateWidgetOption(slot, key, newItems);
+                        }
+                      }}
+                    ></ha-textfield>
+                  </div>
                 </div>
               `
             )}

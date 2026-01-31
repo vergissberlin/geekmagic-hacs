@@ -108,6 +108,10 @@ jobs:
         working-directory: custom_components/geekmagic/frontend
         run: npm run typecheck
 
+      - name: Run frontend tests
+        working-directory: custom_components/geekmagic/frontend
+        run: npm test
+
       - name: Verify dist is up-to-date
         working-directory: custom_components/geekmagic/frontend
         run: |
