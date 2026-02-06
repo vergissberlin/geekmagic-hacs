@@ -103,8 +103,14 @@ class TestFontScaling:
         tiny_height = 80 * SUPERSAMPLE_SCALE  # 160px
 
         # Even in tiny containers, fonts should not be smaller than ~20px
-        font = renderer.get_scaled_font("small", tiny_height)
-        assert font.size >= 20, f"Font too small for readability: {font.size}px"
+        # Test both legacy and semantic fonts
+        small_font = renderer.get_scaled_font("small", tiny_height)
+        tiny_font = renderer.get_scaled_font("tiny", tiny_height)
+        tertiary_font = renderer.get_scaled_font("tertiary", tiny_height)
+
+        assert small_font.size >= 20, f"'small' font too small for readability: {small_font.size}px"
+        assert tiny_font.size >= 20, f"'tiny' font too small for readability: {tiny_font.size}px"
+        assert tertiary_font.size >= 20, f"'tertiary' font too small: {tertiary_font.size}px"
 
     def test_legacy_and_semantic_comparable_sizes(self):
         """Test that legacy medium is comparable to semantic secondary."""

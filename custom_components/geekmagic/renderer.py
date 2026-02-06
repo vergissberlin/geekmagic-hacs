@@ -210,7 +210,9 @@ class Renderer:
         else:
             # Legacy sizing: base size with scale factor
             # Note: base_size is already at scaled resolution (480px), so we don't multiply by self._scale
-            base_size, min_size = legacy_config.get(size_name, (72, 36))  # default to "regular"
+            base_size, min_size = legacy_config.get(
+                size_name, (FONT_SIZE_REGULAR, FONT_SIZE_REGULAR // 2)
+            )
             scaled_size = max(min_size, int(base_size * scale_factor * adjust_factor))
 
         # Check cache first to avoid repeated disk I/O
