@@ -7,6 +7,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from custom_components.geekmagic.renderer import Renderer, SUPERSAMPLE_SCALE
 
+# Expected font size ranges (at 480px scaled height)
+# Allow tolerance for font metrics variations
+EXPECTED_PRIMARY_RANGE = (150, 190)    # ~168px (35% of 480px)
+EXPECTED_SECONDARY_RANGE = (80, 110)   # ~96px (20% of 480px)
+EXPECTED_TERTIARY_RANGE = (50, 70)     # ~57px (12% of 480px)
+EXPECTED_REGULAR_RANGE = (60, 90)      # ~72px (between tertiary and secondary)
+EXPECTED_MEDIUM_RANGE = (80, 110)      # ~96px (matches secondary)
+EXPECTED_GRID_RANGE = (40, 60)         # ~48px (scaled down for grid layout)
+
 
 class TestFontScaling:
     """Tests for get_scaled_font method."""
@@ -29,9 +38,15 @@ class TestFontScaling:
         assert secondary.size > tertiary.size
 
         # Check approximate sizes (allow some tolerance for font metrics)
-        assert 150 < primary.size < 190, f"Primary font size {primary.size} out of expected range"
-        assert 80 < secondary.size < 110, f"Secondary font size {secondary.size} out of expected range"
-        assert 50 < tertiary.size < 70, f"Tertiary font size {tertiary.size} out of expected range"
+        assert EXPECTED_PRIMARY_RANGE[0] < primary.size < EXPECTED_PRIMARY_RANGE[1], (
+            f"Primary font size {primary.size} out of expected range {EXPECTED_PRIMARY_RANGE}"
+        )
+        assert EXPECTED_SECONDARY_RANGE[0] < secondary.size < EXPECTED_SECONDARY_RANGE[1], (
+            f"Secondary font size {secondary.size} out of expected range {EXPECTED_SECONDARY_RANGE}"
+        )
+        assert EXPECTED_TERTIARY_RANGE[0] < tertiary.size < EXPECTED_TERTIARY_RANGE[1], (
+            f"Tertiary font size {tertiary.size} out of expected range {EXPECTED_TERTIARY_RANGE}"
+        )
 
     def test_legacy_font_sizes_at_full_screen(self):
         """Test that legacy fonts scale appropriately for full screen."""
@@ -54,8 +69,12 @@ class TestFontScaling:
         # Legacy fonts should be comparable in size to semantic fonts
         # medium should be similar to secondary (~96px)
         # regular should be between tertiary and secondary (~72px)
-        assert 60 < regular.size < 90, f"Regular font size {regular.size} too small for readability"
-        assert 80 < medium.size < 110, f"Medium font size {medium.size} too small for readability"
+        assert EXPECTED_REGULAR_RANGE[0] < regular.size < EXPECTED_REGULAR_RANGE[1], (
+            f"Regular font size {regular.size} too small for readability"
+        )
+        assert EXPECTED_MEDIUM_RANGE[0] < medium.size < EXPECTED_MEDIUM_RANGE[1], (
+            f"Medium font size {medium.size} too small for readability"
+        )
 
     def test_font_scaling_for_grid_layouts(self):
         """Test that fonts scale down appropriately for smaller containers."""
@@ -69,8 +88,12 @@ class TestFontScaling:
 
         # Fonts should scale down proportionally
         # Secondary at half height should be ~48px (not stuck at min_size)
-        assert 40 < secondary.size < 60, f"Grid font size {secondary.size} not scaling properly"
-        assert 40 < medium.size < 60, f"Grid font size {medium.size} not scaling properly"
+        assert EXPECTED_GRID_RANGE[0] < secondary.size < EXPECTED_GRID_RANGE[1], (
+            f"Grid font size {secondary.size} not scaling properly"
+        )
+        assert EXPECTED_GRID_RANGE[0] < medium.size < EXPECTED_GRID_RANGE[1], (
+            f"Grid font size {medium.size} not scaling properly"
+        )
 
     def test_font_sizes_are_readable(self):
         """Test that smallest fonts are still readable (minimum 20px at supersample)."""

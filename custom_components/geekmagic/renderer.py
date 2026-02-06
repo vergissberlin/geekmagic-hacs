@@ -32,6 +32,16 @@ if TYPE_CHECKING:
 # Supersampling scale for anti-aliasing
 SUPERSAMPLE_SCALE = 2
 
+# Font sizes at scaled reference height (480px)
+# These match the legacy_config in get_scaled_font for consistency
+FONT_SIZE_TINY = 38
+FONT_SIZE_SMALL = 57
+FONT_SIZE_REGULAR = 72
+FONT_SIZE_MEDIUM = 96
+FONT_SIZE_LARGE = 134
+FONT_SIZE_XLARGE = 168
+FONT_SIZE_HUGE = 216
+
 # Bundled font directory (relative to this file)
 _FONTS_DIR = Path(__file__).parent / "fonts"
 
@@ -110,20 +120,20 @@ class Renderer:
         self._scaled_height = self.height * self._scale
 
         # Load fonts at scaled sizes
-        # These match the legacy_config base sizes (at 480px scaled height)
-        # for consistent sizing across static and dynamic font methods
-        self.font_tiny = _load_font(38)
-        self.font_small = _load_font(57)
-        self.font_regular = _load_font(72)
-        self.font_medium = _load_font(96)
-        self.font_large = _load_font(134)
-        self.font_xlarge = _load_font(168)
-        self.font_huge = _load_font(216)
+        # These match FONT_SIZE_* constants for consistent sizing
+        # across static and dynamic font methods
+        self.font_tiny = _load_font(FONT_SIZE_TINY)
+        self.font_small = _load_font(FONT_SIZE_SMALL)
+        self.font_regular = _load_font(FONT_SIZE_REGULAR)
+        self.font_medium = _load_font(FONT_SIZE_MEDIUM)
+        self.font_large = _load_font(FONT_SIZE_LARGE)
+        self.font_xlarge = _load_font(FONT_SIZE_XLARGE)
+        self.font_huge = _load_font(FONT_SIZE_HUGE)
 
         # Bold font variants for emphasis
-        self.font_small_bold = _load_font(57, bold=True)
-        self.font_regular_bold = _load_font(72, bold=True)
-        self.font_medium_bold = _load_font(96, bold=True)
+        self.font_small_bold = _load_font(FONT_SIZE_SMALL, bold=True)
+        self.font_regular_bold = _load_font(FONT_SIZE_REGULAR, bold=True)
+        self.font_medium_bold = _load_font(FONT_SIZE_MEDIUM, bold=True)
 
         # Font cache for dynamically sized fonts (avoid repeated disk I/O)
         self._font_cache: dict[tuple[int, bool], FreeTypeFont | ImageFont.ImageFont] = {}
@@ -176,13 +186,13 @@ class Renderer:
         # These are tuned to match the scale of semantic sizing for consistency
         # Min sizes ensure readability even in small containers (typically half of base)
         legacy_config = {
-            "tiny": (38, 20),     # Smaller than tertiary (12% = 57px)
-            "small": (57, 28),    # Same as tertiary (12% = 57px)
-            "regular": (72, 36),  # Between tertiary and secondary (~15%)
-            "medium": (96, 48),   # Same as secondary (20% = 96px)
-            "large": (134, 67),   # Between secondary and primary (~28%)
-            "xlarge": (168, 84),  # Same as primary (35% = 168px)
-            "huge": (216, 108),   # Larger than primary (~45%)
+            "tiny": (FONT_SIZE_TINY, 20),        # Smaller than tertiary (12% = 57px)
+            "small": (FONT_SIZE_SMALL, 28),      # Same as tertiary (12% = 57px)
+            "regular": (FONT_SIZE_REGULAR, 36),  # Between tertiary and secondary (~15%)
+            "medium": (FONT_SIZE_MEDIUM, 48),    # Same as secondary (20% = 96px)
+            "large": (FONT_SIZE_LARGE, 67),      # Between secondary and primary (~28%)
+            "xlarge": (FONT_SIZE_XLARGE, 84),    # Same as primary (35% = 168px)
+            "huge": (FONT_SIZE_HUGE, 108),       # Larger than primary (~45%)
         }
 
         # Calculate scale factor based on container height vs reference
