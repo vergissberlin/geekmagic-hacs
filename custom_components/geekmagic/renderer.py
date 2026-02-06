@@ -109,20 +109,21 @@ class Renderer:
         self._scaled_width = self.width * self._scale
         self._scaled_height = self.height * self._scale
 
-        # Load fonts at scaled sizes (min 13px for readability on 240x240 display)
-        # Tiny font increased from 11px to 13px for better readability
-        self.font_tiny = _load_font(13 * self._scale)
-        self.font_small = _load_font(14 * self._scale)
-        self.font_regular = _load_font(15 * self._scale)
-        self.font_medium = _load_font(18 * self._scale)
-        self.font_large = _load_font(24 * self._scale)
-        self.font_xlarge = _load_font(36 * self._scale)
-        self.font_huge = _load_font(52 * self._scale)
+        # Load fonts at scaled sizes
+        # These match the legacy_config base sizes (at 480px scaled height)
+        # for consistent sizing across static and dynamic font methods
+        self.font_tiny = _load_font(38)
+        self.font_small = _load_font(57)
+        self.font_regular = _load_font(72)
+        self.font_medium = _load_font(96)
+        self.font_large = _load_font(134)
+        self.font_xlarge = _load_font(168)
+        self.font_huge = _load_font(216)
 
         # Bold font variants for emphasis
-        self.font_small_bold = _load_font(13 * self._scale, bold=True)
-        self.font_regular_bold = _load_font(15 * self._scale, bold=True)
-        self.font_medium_bold = _load_font(18 * self._scale, bold=True)
+        self.font_small_bold = _load_font(57, bold=True)
+        self.font_regular_bold = _load_font(72, bold=True)
+        self.font_medium_bold = _load_font(96, bold=True)
 
         # Font cache for dynamically sized fonts (avoid repeated disk I/O)
         self._font_cache: dict[tuple[int, bool], FreeTypeFont | ImageFont.ImageFont] = {}
@@ -171,16 +172,17 @@ class Renderer:
         }
 
         # Legacy font config: (base_size, min_size) per category
-        # Base sizes are for full 240px height at 2x scale = 480px
-        # Min sizes ensure readability even in small containers
+        # Base sizes are pixel sizes at the scaled reference height (480px)
+        # These are tuned to match the scale of semantic sizing for consistency
+        # Min sizes ensure readability even in small containers (typically half of base)
         legacy_config = {
-            "tiny": (13, 22),
-            "small": (14, 24),
-            "regular": (15, 24),
-            "medium": (18, 28),
-            "large": (24, 34),
-            "xlarge": (36, 44),
-            "huge": (52, 52),
+            "tiny": (38, 20),     # Smaller than tertiary (12% = 57px)
+            "small": (57, 28),    # Same as tertiary (12% = 57px)
+            "regular": (72, 36),  # Between tertiary and secondary (~15%)
+            "medium": (96, 48),   # Same as secondary (20% = 96px)
+            "large": (134, 67),   # Between secondary and primary (~28%)
+            "xlarge": (168, 84),  # Same as primary (35% = 168px)
+            "huge": (216, 108),   # Larger than primary (~45%)
         }
 
         # Calculate scale factor based on container height vs reference
@@ -197,8 +199,9 @@ class Renderer:
             scaled_size = max(22, int(rect_height * ratio))
         else:
             # Legacy sizing: base size with scale factor
-            base_size, min_size = legacy_config.get(size_name, (15, 24))
-            scaled_size = max(min_size, int(base_size * self._scale * scale_factor * adjust_factor))
+            # Note: base_size is already at scaled resolution (480px), so we don't multiply by self._scale
+            base_size, min_size = legacy_config.get(size_name, (72, 36))  # default to "regular"
+            scaled_size = max(min_size, int(base_size * scale_factor * adjust_factor))
 
         # Check cache first to avoid repeated disk I/O
         cache_key = (scaled_size, bold)
